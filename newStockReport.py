@@ -1,16 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import pandas as pd
-from datetime import datetime
-from datetime import timedelta
-import numpy as np
-from numpy import NaN
-import math
-import csv
 import os
-import xlrd
-import string
-from productInfo import ProductInfo
 import re
 
 

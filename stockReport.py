@@ -3,21 +3,10 @@
 import re
 
 import pandas as pd
-from datetime import datetime
-from datetime import timedelta
-import numpy as np
-from numpy import NaN
-import math
-import csv
 import os
-import xlrd
-import string
-from productInfo import ProductInfo
 
 
 class StockReport:
-    _SELECTED_COL_NAMES_NEW_SYS = ['productId', 'unit', 'amount', 'comment',
-                                   'productionDate']  # '商品编码', "单位", '数量',  '备注','生产日期'
     _SELECTED_COL_IDS_OLD_SYS = r'D, F, G, H, I, J, L'
     _SELECTED_COL_NAMES_OLD_SYS = ["categoryName", "serialNum", "productName", "unit", "amount", "currCost",
                                    "salePrice"]
@@ -46,7 +35,6 @@ class StockReport:
         value = 0
         try:
             price = row_filterd[colName].iloc[0]
-            # TODO:
             [res, value] = self.parsePrice(price)
         except IndexError:
             print(f"该商品在新系统中不存在 商品编号: {productId}")

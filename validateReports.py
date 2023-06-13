@@ -3,7 +3,8 @@
 import datetime
 from stockReport import StockReport
 from newStockReport import NewStockReport
-from productInfo import ProductInfo
+from oldSaleReport import OldSaleReport
+from newSaleReport import NewSaleReport
 
 
 class ValidateReports:
@@ -54,7 +55,7 @@ class ValidateReports:
                     no_zero_amount += 1
                     continue
             except TypeError:
-                print("expected string or bytes-like object, this line has wrong data")
+                print("旧系统表中该行包含错误数据")
                 continue
             tmp_productId = old_stock_report.getProductId(df_stock_old_sys, ind)
             # check amount
@@ -66,7 +67,7 @@ class ValidateReports:
             # check currCost
             [res, old_cost] = old_stock_report.getCurrCost(df_stock_old_sys, tmp_productId)
             if res is None:
-                print("this line doesn't contain data")
+                print("该行没有数据")
                 continue
             new_cost = new_stock_report.getCurrCost(df_stock_new_sys, tmp_productId)
             if old_cost == new_cost:
@@ -97,10 +98,44 @@ class ValidateReports:
 
     def validateSaleReports(self, name):
         OLD_REPORT_FILENAME = r"6.6销售表.xls"
-        NEW_REPORT_FILENAME = r"6 便利一店销售汇总.xls"
+        NEW_REPORT_FILENAME = r"7 便利一店销售汇总报表（品名排序）.xls"
         # import excel sheets
-        old_stock_report = StockReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_STOCK_REPORT_FILENAME,
-                                       self._SHEET_NAME)
-        df_stock_old_sys = old_stock_report.importExcelSheet()
-        new_stock_report = NewStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_STOCK_REPORT_FILENAME)
-        df_stock_new_sys = new_stock_report.importExcelSheet()
+        old_report = OldSaleReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
+                                   self._SHEET_NAME)
+        df_old_sys = old_report.importExcelSheet()
+        new_report = NewSaleReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME, self._SHEET_NAME)
+        df_new_sys = new_report.importExcelSheet()
+        total_line_num = df_old_sys.index.size
+        no_zero_amount = 0
+        no_none_data = 0
+        no_naf = 0
+        no_sale_amount_correct = 0
+        no_sale_amount_incorrect = 0
+        no_united_sale = 0
+        no_sale_price_correct = 0
+        no_refund_amount_correct = 0
+        no_refund_price_correct = 0
+
+        # compare sale amount
+        for ind in df_old_sys.index:
+            # skip the product which unit is jin
+            if old_report.getUnit(df_old_sys, ind) == "公斤":
+                no_united_sale += 1
+                continue
+            serial_num = old_report.getSerialNum(df_old_sys, ind)
+            old_sale_amount = 0
+            try:
+                [res, old_sale_amount] = old_report.getSaleAmount(df_old_sys, serial_num)
+                if res is None:
+                    no_naf += 1
+                    continue
+            except TypeError:
+                print("旧系统表中该行包含错误数据")
+                continue
+            [res, new_sale_amount] = new_report.getSaleAmount(df_new_sys, serial_num)
+            if new_sale_amount == old_sale_amount:
+                no_sale_amount_correct += 1
+            else:
+                no_sale_amount_incorrect += 1
+                print(f"商品 {serial_num} 的数量核对不上，在旧系统中为：{old_sale_amount}，在新系统中为{new_sale_amount}")
+        print(f'销售数量正确的商品个数：{no_sale_amount_correct}\n销售数量错误的商品个数：{no_sale_amount_incorrect - old_report.getNotProductAmount() - new_report.getNotProductAmount()}\n联营商品数量：{no_united_sale}')

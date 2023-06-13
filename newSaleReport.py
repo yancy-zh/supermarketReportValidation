@@ -5,9 +5,9 @@ import os
 import re
 
 
-class OldSaleReport:
-    _SELECTED_COL_NAMES_OLD_SYS = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice', 'unit']
-    _SELECTED_COL_IDS_OLD_SYS = r'D, F, G, H, I, L'
+class NewSaleReport:
+    _SELECTED_COL_NAMES_OLD_SYS = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice']
+    _SELECTED_COL_IDS_OLD_SYS = r'F, K, L, N, O'
     _AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')
     _ENTRY_NOT_PRODUCT = 0
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
@@ -26,8 +26,7 @@ class OldSaleReport:
 
     def getSerialNum(self, df, ind):
         return df['serialNum'][ind]
-    def getUnit(self, df, ind):
-        return df['unit'][ind]
+
     def getPrice(self, df, serial_num, colName):
         row_filterd = df[df[self._SELECTED_COL_NAMES_OLD_SYS[0]] == serial_num]
         res = None
@@ -47,7 +46,7 @@ class OldSaleReport:
             price = row_filterd[col_name].iloc[0]
             [res, value] = self.parseAmount(price)
         except IndexError:
-            print(f"该商品在旧系统中不存在 商品编号: {serial_num}")
+            print(f"该商品在新系统中不存在 商品编号: {serial_num}")
             self._ENTRY_NOT_PRODUCT += 1
         return [res, value]
 
