@@ -1,12 +1,17 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import datetime
+
+import pandas as pd
+
 from stockReport import StockReport
 from newStockReport import NewStockReport
 from oldSaleReport import OldSaleReport
 from newSaleReport import NewSaleReport
 from oldTransactionRecordReport import OldTransactionRecordReport
 from newSaleByCategoryReport import NewSaleByCategoryReport
+from newTransactionReport import NewTransactionReport
+from pandas import DataFrame
 import math
 
 
@@ -121,7 +126,7 @@ class ValidateReports:
         no_sale_price_correct = 0
         no_sale_price_incorrect = 0
         no_refund_amount_correct = 0
-        no_refund_amount_incorrect =0
+        no_refund_amount_incorrect = 0
         no_refund_price_correct = 0
         no_refund_price_incorrect = 0
         for ind in df_old_sys.index:
@@ -158,7 +163,8 @@ class ValidateReports:
             else:
                 no_product += 1
                 no_sale_amount_incorrect += 1
-                print(f"商品 {serial_num} 的銷售数量核对不上，在旧系统中为：{old_sale_amount}，在新系统中为{new_sale_amount}")
+                print(
+                    f"商品 {serial_num} 的銷售数量核对不上，在旧系统中为：{old_sale_amount}，在新系统中为{new_sale_amount}")
             # compare refund amount
             try:
                 [res, old_refund_amount] = old_report.getRefundAmount(df_old_sys, serial_num)
@@ -170,10 +176,11 @@ class ValidateReports:
                 continue
             [res, new_refund_amount] = new_report.getRefundAmount(df_new_sys, serial_num)
             if new_refund_amount == old_refund_amount:
-                no_refund_amount_correct +=1
+                no_refund_amount_correct += 1
             else:
-                no_refund_amount_incorrect +=1
-                print(f"商品 {serial_num} 的退貨数量核对不上，在旧系统中为：{old_refund_amount}，在新系统中为{new_refund_amount}")
+                no_refund_amount_incorrect += 1
+                print(
+                    f"商品 {serial_num} 的退貨数量核对不上，在旧系统中为：{old_refund_amount}，在新系统中为{new_refund_amount}")
             # compare sale price
             [_, old_sale_price] = old_report.getSalePrice(df_old_sys, serial_num)
             [_, new_sale_price] = new_report.getSalePrice(df_new_sys, serial_num)
@@ -197,6 +204,7 @@ class ValidateReports:
         print(f'商品销售金额正确：{no_sale_price_correct}\n商品销售金额错误：{no_sale_price_incorrect}')
         print(f'商品退货数量正确：{no_refund_amount_correct}\n商品退货数量错误：{no_refund_amount_incorrect}')
         print(f'商品退货金额正确：{no_refund_price_correct}\n商品退货金额错误：{no_refund_price_incorrect}')
+
     def validateSaleByCategory(self, name):
         OLD_REPORT_FILENAME = r"6.6销售表.xls"
         NEW_REPORT_FILENAME = r"7 便利一店销售汇总报表（品类排序）.xls"
@@ -206,9 +214,13 @@ class ValidateReports:
         old_report = OldSaleReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
                                    self._SHEET_NAME)
         df_old_sys = old_report.importExcelSheet()
-        new_report = NewSaleByCategoryReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME, self._SHEET_NAME)
+        new_report = NewSaleByCategoryReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                             self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
-        categories = ["食用油","调料","副食","大米","面粉","零食","饮料","副食","乳制品","蔬菜","水果","蛋糕","鸡蛋","鸡蛋","零食","副食","冻货","大米","乳制品","副食","食用油","副食","乳制品酸奶","乳制品纯奶","食用油","大米","副食","杂品类（购物袋）","饮料","副食","调料","鸡蛋","乳制品","零食","干货","调料","杂粮","肉类","冻货","零食","蛋糕","副食"]
+        categories = ["食用油", "调料", "副食", "大米", "面粉", "零食", "饮料", "副食", "乳制品", "蔬菜", "水果",
+                      "蛋糕", "鸡蛋", "鸡蛋", "零食", "副食", "冻货", "大米", "乳制品", "副食", "食用油", "副食",
+                      "乳制品酸奶", "乳制品纯奶", "食用油", "大米", "副食", "杂品类（购物袋）", "饮料", "副食", "调料",
+                      "鸡蛋", "乳制品", "零食", "干货", "调料", "杂粮", "肉类", "冻货", "零食", "蛋糕", "副食"]
         for category in categories:
             old_sum_dict = old_report.getTotalByCategory(df_old_sys, category)
             new_sum_dict = new_report.getTotalByCategory(df_new_sys, category)
@@ -218,18 +230,54 @@ class ValidateReports:
                 no_category_sum_incorrect += 1
                 print(f'品类{category}数据对不上:\n - 旧系统：{old_sum_dict}\n- 新系统：{new_sum_dict}')
 
-
     def validateTransactionReports(self, name):
         print(f"运行{name}...")
         OLD_REPORT_FILENAME = r"6.6前台流水.xls"
         NEW_REPORT_FILENAME = r"9 前台商品销售流水.xls"
+        no_nan = 0
+        no_not_digit = 0
+        no_correct =0
+        no_incorrect =0
+
         # import excel sheets
         old_report = OldTransactionRecordReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
-                                   self._SHEET_NAME)
+                                                self._SHEET_NAME)
         df_old_sys = old_report.importExcelSheet()
-        new_report = NewSaleReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME, self._SHEET_NAME)
+        new_report = NewTransactionReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME, self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
         total_line_num = df_old_sys.index.size
+        df_old_sys_cleaned = old_report.cleanTable(df_old_sys)
+        df_new_sys_cleaned = pd.DataFrame()
         for ind in df_old_sys.index:
-            old_transaction_no = old_report.getTransactionNum(df_old_sys, ind)
+            line_num = old_report.getLineNum(df_old_sys, ind)
+            item_id = old_report.getItemId(df_old_sys, ind)
+            try:
+                if math.isnan(item_id):
+                    no_nan += 1
+                    print(f'nan')
+                    continue
+            except TypeError:
+                if not old_report.isSerialNum(item_id):
+                    no_not_digit += 1
+                    print(f'str data')
+                    continue
+            try:
+                if math.isnan(line_num):
+                    no_nan += 1
+                    print(f'nan')
+                    continue
+            except TypeError:
+                if not old_report.isSerialNum(line_num):
+                    no_not_digit+=1
+                    print(f'str data')
+                    continue
+            old_transaction_it = old_report.getTransactionItem(df_old_sys, ind)
+            new_transaction_it = old_report.getTransactionItem(df_new_sys, ind)
+            if old_transaction_it == new_transaction_it:
+                no_correct += 1
+                print(f"商品货号正确：{line_num} 交易流水：\n旧系统: {old_transaction_it}, \n新系统: {new_transaction_it}")
+            else:
+                no_incorrect += 1
+                print(f"商品货号錯誤：{line_num} 交易流水：\n旧系统: {old_transaction_it}, \n新系统: {new_transaction_it}")
 
+            print(f'交易流水项正确个数：{no_correct}\n交易流水项错误个数：{no_incorrect}')
