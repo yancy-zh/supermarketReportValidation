@@ -9,4 +9,6 @@ from  validateReports import ValidateReports
 if __name__ == '__main__':
     validateReports = ValidateReports()
     # validateReports.validateStockReports('比对库存表')
-    validateReports.validateSaleReports('比对销售表')
+    # validateReports.validateSaleReports('比对销售表')
+    # validateReports.validateTransactionReports('比对流水表')
+    validateReports.validateSaleByCategory('比对按品类分类汇总销售表')

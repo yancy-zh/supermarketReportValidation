@@ -10,6 +10,7 @@ class NewSaleReport:
     _SELECTED_COL_IDS_OLD_SYS = r'F, K, L, N, O'
     _AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')
     _ENTRY_NOT_PRODUCT = 0
+    _ENTRY_NOT_FOUND = 0
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         self.metadata_filename = os.path.join(working_dir_name, reportTableName)
         self.excel_sheet_name = excel_sheet_name
@@ -82,3 +83,4 @@ class NewSaleReport:
 
     def getNotProductAmount(self):
         return self._ENTRY_NOT_PRODUCT
+
