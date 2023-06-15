@@ -8,8 +8,8 @@ import math
 
 
 class OldTransactionRecordReport:
-    _SELECTED_COL_NAMES_OLD_SYS = ['saleType', 'itemId', 'productId', 'amount', 'salePrice', 'unit']
-    _SELECTED_COL_IDS_OLD_SYS = r'D, E, F, H, J, Q'
+    _SELECTED_COL_NAMES = ['saleType', 'itemId', 'productId', 'amount', 'salePrice', 'unit']
+    _SELECTED_COL_IDS = r'D, E, F, H, J, Q'
     _AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')
     _SERIAL_PATTERN = r'\d+'
 
@@ -22,19 +22,19 @@ class OldTransactionRecordReport:
             print(f"file {self.metadata_filename} doesn't exists")
             return
         df_metadata = pd.read_excel(self.metadata_filename, header=None, skiprows=[0],
-                                    usecols=self._SELECTED_COL_IDS_OLD_SYS,
-                                    names=self._SELECTED_COL_NAMES_OLD_SYS
+                                    usecols=self._SELECTED_COL_IDS,
+                                    names=self._SELECTED_COL_NAMES
                                     )
         return df_metadata
 
     def getTransactionItem(self, df, ind):
         row = df.iloc[ind]
         row_dict = {}
-        row_dict[self._SELECTED_COL_NAMES_OLD_SYS[0]] = row[self._SELECTED_COL_NAMES_OLD_SYS[0]]
-        row_dict[self._SELECTED_COL_NAMES_OLD_SYS[1]] = self.parseAmount(row[self._SELECTED_COL_NAMES_OLD_SYS[1]])
-        row_dict[self._SELECTED_COL_NAMES_OLD_SYS[2]] = row[self._SELECTED_COL_NAMES_OLD_SYS[2]]
-        row_dict[self._SELECTED_COL_NAMES_OLD_SYS[3]] = self.parseAmount(row[self._SELECTED_COL_NAMES_OLD_SYS[3]])
-        row_dict[self._SELECTED_COL_NAMES_OLD_SYS[4]] = self.parsePrice(row[self._SELECTED_COL_NAMES_OLD_SYS[4]])
+        row_dict[self._SELECTED_COL_NAMES[0]] = row[self._SELECTED_COL_NAMES[0]]
+        row_dict[self._SELECTED_COL_NAMES[1]] = self.parseAmount(row[self._SELECTED_COL_NAMES[1]])
+        row_dict[self._SELECTED_COL_NAMES[2]] = row[self._SELECTED_COL_NAMES[2]]
+        row_dict[self._SELECTED_COL_NAMES[3]] = self.parseAmount(row[self._SELECTED_COL_NAMES[3]])
+        row_dict[self._SELECTED_COL_NAMES[4]] = self.parsePrice(row[self._SELECTED_COL_NAMES[4]])
         return row_dict
 
     def parseAmount(self, amountStr):
@@ -57,34 +57,38 @@ class OldTransactionRecordReport:
         priceStr = priceStr.replace(',', '')
         mt = re.match(self._AMOUNT_PATTERN, priceStr)
         if mt:
-            return float(priceStr)
+            return round(float(priceStr), 2)
         else:
             return 0
 
     def getLineNum(self, df, ind):
-        return df[self._SELECTED_COL_NAMES_OLD_SYS[2]][ind]
+        return df[self._SELECTED_COL_NAMES[2]][ind]
+
     def getItemId(self, df, ind):
-        return df[self._SELECTED_COL_NAMES_OLD_SYS[1]][ind]
+        return df[self._SELECTED_COL_NAMES[1]][ind]
+
     def isSerialNum(self, serial_num_str):
         return re.fullmatch(self._SERIAL_PATTERN, serial_num_str)
 
     def cleanTable(self, df):
         cleaned_df = DataFrame()
         for i in range(len(df)):
-            row =df.loc[i, :]
+            row = df.loc[i, :]
             # clean empty row
             try:
-                if math.isnan(row[self._SELECTED_COL_NAMES_OLD_SYS[2]]) is not None:
+                if math.isnan(row[self._SELECTED_COL_NAMES[2]]) is not None:
                     continue
             except TypeError:
-                if self.isSerialNum(row[self._SELECTED_COL_NAMES_OLD_SYS[2]]):
+                if self.isSerialNum(row[self._SELECTED_COL_NAMES[2]]):
                     # clean united sale
-                    if row[self._SELECTED_COL_NAMES_OLD_SYS[5]] != "公斤" and len(
-                            row[self._SELECTED_COL_NAMES_OLD_SYS[2]]) != 5:
+                    if len(row[self._SELECTED_COL_NAMES[2]]) != 5:
                         cleaned_df = cleaned_df.append(row)
         return cleaned_df
 
+    def calAmountSummary(self, df):
+        return df.groupby([self._SELECTED_COL_NAMES[2]])[self._SELECTED_COL_NAMES[3],self._SELECTED_COL_NAMES[4]].sum()
 
-
-
-
+    def convertTextDataToDigital(self, df):
+        df[self._SELECTED_COL_NAMES[3]] = df[self._SELECTED_COL_NAMES[3]].transform(self.parseAmount)
+        df[self._SELECTED_COL_NAMES[4]] = df[self._SELECTED_COL_NAMES[4]].transform(self.parsePrice)
+        return df

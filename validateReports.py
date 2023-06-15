@@ -217,10 +217,9 @@ class ValidateReports:
         new_report = NewSaleByCategoryReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
                                              self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
-        categories = ["食用油", "调料", "副食", "大米", "面粉", "零食", "饮料", "副食", "乳制品", "蔬菜", "水果",
-                      "蛋糕", "鸡蛋", "鸡蛋", "零食", "副食", "冻货", "大米", "乳制品", "副食", "食用油", "副食",
-                      "乳制品酸奶", "乳制品纯奶", "食用油", "大米", "副食", "杂品类（购物袋）", "饮料", "副食", "调料",
-                      "鸡蛋", "乳制品", "零食", "干货", "调料", "杂粮", "肉类", "冻货", "零食", "蛋糕", "副食"]
+        categories = ["食用油", "调料", "副食", "大米", "面粉", "零食", "饮料", "副食", "乳制品", "蔬菜", "水果"
+            , "鸡蛋", "乳制品酸奶", "乳制品纯奶", "杂品类（购物袋）", "调料"
+            , "干货", "杂粮", "肉类", "冻货", "蛋糕"]
         for category in categories:
             old_sum_dict = old_report.getTotalByCategory(df_old_sys, category)
             new_sum_dict = new_report.getTotalByCategory(df_new_sys, category)
@@ -229,6 +228,7 @@ class ValidateReports:
             else:
                 no_category_sum_incorrect += 1
                 print(f'品类{category}数据对不上:\n - 旧系统：{old_sum_dict}\n- 新系统：{new_sum_dict}')
+        print(f"品类数量共：{categories}")
 
     def validateTransactionReports(self, name):
         print(f"运行{name}...")
@@ -236,48 +236,60 @@ class ValidateReports:
         NEW_REPORT_FILENAME = r"9 前台商品销售流水.xls"
         no_nan = 0
         no_not_digit = 0
-        no_correct =0
-        no_incorrect =0
+        no_correct = 0
+        no_incorrect = 0
 
         # import excel sheets
         old_report = OldTransactionRecordReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
                                                 self._SHEET_NAME)
         df_old_sys = old_report.importExcelSheet()
-        new_report = NewTransactionReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME, self._SHEET_NAME)
+        new_report = NewTransactionReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                          self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
         total_line_num = df_old_sys.index.size
         df_old_sys_cleaned = old_report.cleanTable(df_old_sys)
-        df_new_sys_cleaned = pd.DataFrame()
-        for ind in df_old_sys.index:
-            line_num = old_report.getLineNum(df_old_sys, ind)
-            item_id = old_report.getItemId(df_old_sys, ind)
-            try:
-                if math.isnan(item_id):
-                    no_nan += 1
-                    print(f'nan')
-                    continue
-            except TypeError:
-                if not old_report.isSerialNum(item_id):
-                    no_not_digit += 1
-                    print(f'str data')
-                    continue
-            try:
-                if math.isnan(line_num):
-                    no_nan += 1
-                    print(f'nan')
-                    continue
-            except TypeError:
-                if not old_report.isSerialNum(line_num):
-                    no_not_digit+=1
-                    print(f'str data')
-                    continue
-            old_transaction_it = old_report.getTransactionItem(df_old_sys, ind)
-            new_transaction_it = old_report.getTransactionItem(df_new_sys, ind)
-            if old_transaction_it == new_transaction_it:
-                no_correct += 1
-                print(f"商品货号正确：{line_num} 交易流水：\n旧系统: {old_transaction_it}, \n新系统: {new_transaction_it}")
-            else:
-                no_incorrect += 1
-                print(f"商品货号錯誤：{line_num} 交易流水：\n旧系统: {old_transaction_it}, \n新系统: {new_transaction_it}")
+        df_old_sys_amount_sum = old_report.calAmountSummary(old_report.convertTextDataToDigital(df_old_sys_cleaned))
+        df_old_sys_amount_sum.to_csv(f'{name}df_old_sys_amount_sum.csv')
+        df_new_sys_cleaned = new_report.cleanTable(df_new_sys)
+        df_new_sys_amount_sum = new_report.calAmountSummary(new_report.convertTextDataToDigital(df_new_sys_cleaned))
+        df_new_sys_amount_sum.to_csv(f'{name}df_new_sys_amount_sum.csv')
 
-            print(f'交易流水项正确个数：{no_correct}\n交易流水项错误个数：{no_incorrect}')
+    def compareTransactionReports(self, name):
+        print(f'运行：{name}')
+        df_old = pd.read_csv("比对流水表df_old_sys_amount_sum.csv")
+        df_new = pd.read_csv("比对流水表df_new_sys_amount_sum.csv")
+        total = len(df_old.index)
+        no_correct = 0
+        no_incorrect = 0
+        no_index_err = 0
+        no_val_err = 0
+        for ind in df_old.index:
+            productId = df_old['productId'][ind]
+            row_in_new_sys = df_new[df_new['productId'] == productId]
+            old_amount = df_old['amount'][ind]
+            old_price = df_old['salePrice'][ind]
+            try:
+                new_amount = row_in_new_sys.get('amount').values[0]
+                new_price = row_in_new_sys.get('salePrice').values[0]
+            except IndexError:
+                no_index_err += 1
+                new_amount = row_in_new_sys.get('amount')
+                new_price = row_in_new_sys.get('salePrice')
+                print(
+                    f'{IndexError}ind: {ind}商品货号：{productId}数据比对不上\n旧系统销售数量：{old_amount} 销售金额: {old_price}')
+                print(f'新系统销售数量：{new_amount} 销售金额: {new_price}')
+            try:
+                if old_amount == new_amount and round(old_price, 2) == round(new_price, 2):
+                    no_correct += 1
+                else:
+                    no_incorrect += 1
+                    print(f'商品货号：{productId}数据比对不上\n旧系统销售数量：{old_amount} 销售金额: {old_price}')
+                    print(f'新系统销售数量：{new_amount} 销售金额: {new_price}')
+            except ValueError:
+                no_val_err += 1
+                print(ValueError)
+                print(
+                    f'{ValueError}ind: {ind}商品货号：{productId}数据比对不上\n旧系统销售数量：{old_amount} 销售金额: {old_price}')
+                print(f'新系统销售数量：{new_amount} 销售金额: {new_price}')
+        print(
+            f'交易流水项总数：{total}\n正确个数：{no_correct}\n交易流水项错误个数：{no_incorrect}\nindexErr: {no_index_err}\n valueErr: {no_val_err}')
