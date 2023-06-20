@@ -4,6 +4,7 @@ import datetime
 
 import pandas as pd
 
+from newImportPurchaseStockReport import NewImportPurchaseStockReport
 from stockReport import StockReport
 from newStockReport import NewStockReport
 from oldSaleReport import OldSaleReport
@@ -13,6 +14,7 @@ from newSaleByCategoryReport import NewSaleByCategoryReport
 from newTransactionReport import NewTransactionReport
 from pandas import DataFrame
 import math
+from oldImportPurchaseStockReport import OldImportPurchaseStockReport
 
 
 class ValidateReports:
@@ -101,9 +103,46 @@ class ValidateReports:
         print(f'销售价正确: {no_sale_price_correct} 个\n销售价错误: {no_sale_price_incorrect} 个\n')
 
     def validatePurchaseSaleStockReports(self, name):
-        OLD_REPORT_FILENAME = r"6.6动态.xls"
+        print(f'运行：{name}')
+        OLD_REPORT_FILENAME = r"6.6动态明细.xls"
         NEW_REPORT_FILENAME = r"4 商品进销存汇总表.xls"
+        no_correct = 0
+        no_incorrect = 0
+        # initialize objs
+        report_old = OldImportPurchaseStockReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
+                                                  self._SHEET_NAME)
+        report_new = NewImportPurchaseStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                                  self._SHEET_NAME)
         # import excel sheets
+        # df_old = report_old.importExcelSheet()
+        # df_new = report_new.importExcelSheet()
+        # # clean up the table
+        # df_old = report_old.cleanTable(df_old, 0)
+        # df_new = report_new.cleanTable(df_new, 0)
+        # # write data to csv
+        # df_old.to_csv(f'{name}old_report_cleaned.csv')
+        # df_new.to_csv(f'{name}new_report_cleaned.csv')
+
+        # import csv to df
+        df_old = pd.read_csv("比对进销存表old_report_cleaned.csv")
+        df_new = pd.read_csv("比对进销存表new_report_cleaned.csv")
+        # convert text data to digital
+        df_old = report_old.convertTextDataToDigital(df_old)
+        df_new = report_new.convertTextDataToDigital(df_new)
+        # loop in the table
+        for ind in df_old.index:
+            serial_num = df_old['serialNum'][ind]
+            old_dict = report_old.getRowBySerialNum(df_old, serial_num)
+            new_dict = report_new.getRowBySerialNum(df_new,  serial_num)
+            # old_dict = report_old.removeKeyFromDict(old_dict)
+            # new_dict = report_new.removeKeyFromDict(new_dict)
+            if report_old.compareDicts(old_dict, new_dict):
+                no_correct += 1
+            else:
+                no_incorrect += 1
+                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict}\n- 新系统：{new_dict}')
+        print(f'总数据行数：{len(df_old)}')
+        print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
 
     def validateSaleReports(self, name):
         print(f"运行{name}...")
@@ -217,9 +256,10 @@ class ValidateReports:
         new_report = NewSaleByCategoryReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
                                              self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
-        categories = ["食用油", "调料", "副食", "大米", "面粉", "零食", "饮料", "副食", "乳制品", "蔬菜", "水果"
+        ls = ["食用油", "调料", "副食", "大米", "面粉", "零食", "饮料", "副食", "乳制品", "蔬菜", "水果"
             , "鸡蛋", "乳制品酸奶", "乳制品纯奶", "杂品类（购物袋）", "调料"
             , "干货", "杂粮", "肉类", "冻货", "蛋糕"]
+        categories = set(ls)
         for category in categories:
             old_sum_dict = old_report.getTotalByCategory(df_old_sys, category)
             new_sum_dict = new_report.getTotalByCategory(df_new_sys, category)
@@ -228,16 +268,13 @@ class ValidateReports:
             else:
                 no_category_sum_incorrect += 1
                 print(f'品类{category}数据对不上:\n - 旧系统：{old_sum_dict}\n- 新系统：{new_sum_dict}')
-        print(f"品类数量共：{categories}")
+        print(f"品类数量共：{len(categories)}\n分别是：{categories}")
+        print(f'数据正确共：{no_category_sum_correct}\n数据错误共：{no_category_sum_incorrect}')
 
     def validateTransactionReports(self, name):
         print(f"运行{name}...")
         OLD_REPORT_FILENAME = r"6.6前台流水.xls"
         NEW_REPORT_FILENAME = r"9 前台商品销售流水.xls"
-        no_nan = 0
-        no_not_digit = 0
-        no_correct = 0
-        no_incorrect = 0
 
         # import excel sheets
         old_report = OldTransactionRecordReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
@@ -246,7 +283,6 @@ class ValidateReports:
         new_report = NewTransactionReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
                                           self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
-        total_line_num = df_old_sys.index.size
         df_old_sys_cleaned = old_report.cleanTable(df_old_sys)
         df_old_sys_amount_sum = old_report.calAmountSummary(old_report.convertTextDataToDigital(df_old_sys_cleaned))
         df_old_sys_amount_sum.to_csv(f'{name}df_old_sys_amount_sum.csv')

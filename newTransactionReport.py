@@ -28,9 +28,6 @@ class NewTransactionReport:
                                     )
         return df_metadata
 
-    def getTranctionItem(self, df, ind):
-        pass
-
     def cleanTable(self, df):
         cleaned_df = DataFrame()
         for i in range(len(df)):

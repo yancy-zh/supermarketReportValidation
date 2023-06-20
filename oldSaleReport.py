@@ -97,9 +97,9 @@ class OldSaleReport:
         sum_dict = {'sale_amount': 0, 'sale_price': 0, 'refund_amount': 0, 'refund_price': 0}
         try:
             sum_dict['sale_amount'] = self.sumAmount(row_filterd[self._SELECTED_COL_NAMES_OLD_SYS[1]])
-            sum_dict['sale_price'] = self.sumPrice(row_filterd[self._SELECTED_COL_NAMES_OLD_SYS[2]])
+            sum_dict['sale_price'] = round(self.sumPrice(row_filterd[self._SELECTED_COL_NAMES_OLD_SYS[2]]), 2)
             sum_dict['refund_amount'] = self.sumAmount(row_filterd[self._SELECTED_COL_NAMES_OLD_SYS[3]])
-            sum_dict['refund_price'] = self.sumPrice(row_filterd[self._SELECTED_COL_NAMES_OLD_SYS[4]])
+            sum_dict['refund_price'] = round(self.sumPrice(row_filterd[self._SELECTED_COL_NAMES_OLD_SYS[4]]), 2)
         except IndexError:
             print(f"该商品在旧系统中不存在 商品编号: {category}")
             self._ENTRY_NOT_FOUND += 1

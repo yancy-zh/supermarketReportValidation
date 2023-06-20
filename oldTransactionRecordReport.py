@@ -27,16 +27,6 @@ class OldTransactionRecordReport:
                                     )
         return df_metadata
 
-    def getTransactionItem(self, df, ind):
-        row = df.iloc[ind]
-        row_dict = {}
-        row_dict[self._SELECTED_COL_NAMES[0]] = row[self._SELECTED_COL_NAMES[0]]
-        row_dict[self._SELECTED_COL_NAMES[1]] = self.parseAmount(row[self._SELECTED_COL_NAMES[1]])
-        row_dict[self._SELECTED_COL_NAMES[2]] = row[self._SELECTED_COL_NAMES[2]]
-        row_dict[self._SELECTED_COL_NAMES[3]] = self.parseAmount(row[self._SELECTED_COL_NAMES[3]])
-        row_dict[self._SELECTED_COL_NAMES[4]] = self.parsePrice(row[self._SELECTED_COL_NAMES[4]])
-        return row_dict
-
     def parseAmount(self, amountStr):
         try:
             amountStr = amountStr.strip()
@@ -60,12 +50,6 @@ class OldTransactionRecordReport:
             return round(float(priceStr), 2)
         else:
             return 0
-
-    def getLineNum(self, df, ind):
-        return df[self._SELECTED_COL_NAMES[2]][ind]
-
-    def getItemId(self, df, ind):
-        return df[self._SELECTED_COL_NAMES[1]][ind]
 
     def isSerialNum(self, serial_num_str):
         return re.fullmatch(self._SERIAL_PATTERN, serial_num_str)
