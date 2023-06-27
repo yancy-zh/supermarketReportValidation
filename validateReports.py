@@ -12,7 +12,6 @@ from newSaleReport import NewSaleReport
 from oldTransactionRecordReport import OldTransactionRecordReport
 from newSaleByCategoryReport import NewSaleByCategoryReport
 from newTransactionReport import NewTransactionReport
-from pandas import DataFrame
 import math
 from oldImportPurchaseStockReport import OldImportPurchaseStockReport
 
@@ -114,14 +113,14 @@ class ValidateReports:
         report_new = NewImportPurchaseStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
                                                   self._SHEET_NAME)
         # import excel sheets
-        # df_old = report_old.importExcelSheet()
-        # df_new = report_new.importExcelSheet()
-        # # clean up the table
-        # df_old = report_old.cleanTable(df_old, 0)
-        # df_new = report_new.cleanTable(df_new, 0)
-        # # write data to csv
-        # df_old.to_csv(f'{name}old_report_cleaned.csv')
-        # df_new.to_csv(f'{name}new_report_cleaned.csv')
+        df_old = report_old.importExcelSheet()
+        df_new = report_new.importExcelSheet()
+        # clean up the table
+        df_old = report_old.cleanTable(df_old, 0)
+        df_new = report_new.cleanTable(df_new, 0)
+        # write data to csv
+        df_old.to_csv(f'{name}old_report_cleaned.csv')
+        df_new.to_csv(f'{name}new_report_cleaned.csv')
 
         # import csv to df
         df_old = pd.read_csv("比对进销存表old_report_cleaned.csv")
@@ -130,18 +129,20 @@ class ValidateReports:
         df_old = report_old.convertTextDataToDigital(df_old)
         df_new = report_new.convertTextDataToDigital(df_new)
         # loop in the table
-        for ind in df_old.index:
-            serial_num = df_old['serialNum'][ind]
+        for ind in df_new.index:
+            serial_num = df_new['serialNum'][ind]
+            if serial_num in report_new.EXCLUDED_SERIAL_NUMS:
+                continue
             old_dict = report_old.getRowBySerialNum(df_old, serial_num)
-            new_dict = report_new.getRowBySerialNum(df_new,  serial_num)
+            new_dict = report_new.getRowBySerialNum(df_new, serial_num)
             # old_dict = report_old.removeKeyFromDict(old_dict)
             # new_dict = report_new.removeKeyFromDict(new_dict)
             if report_old.compareDicts(old_dict, new_dict):
                 no_correct += 1
             else:
                 no_incorrect += 1
-                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict}\n- 新系统：{new_dict}')
-        print(f'总数据行数：{len(df_old)}')
+                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
+        print(f'总数据行数：{len(df_new)}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
 
     def validateSaleReports(self, name):

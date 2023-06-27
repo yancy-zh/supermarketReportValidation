@@ -9,6 +9,7 @@ class OldImportPurchaseStockReport(Report):
                                    'postSaleAmount', 'postSalePrice', 'importPrice', 'saleAmount', 'salePrice']
         self.SELECTED_COL_IDS = r'C, E, F, H, I, J, M, P, AG, AI'
 
+
     def convertTextDataToDigital(self, df):
         df[self.SELECTED_COL_NAMES[3]] = df[self.SELECTED_COL_NAMES[3]].transform(self.floatToInt)
         df[self.SELECTED_COL_NAMES[8]] = df[self.SELECTED_COL_NAMES[8]].transform(self.floatToInt)

@@ -63,3 +63,4 @@ class NewStockReport:
             return int(float(amountStr))
         else:
             return -1
+

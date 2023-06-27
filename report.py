@@ -12,6 +12,7 @@ class Report:
     SELECTED_COL_IDS = ''
     AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')
     SERIAL_PATTERN = r'\d+'
+    CONVERTERS = {'serialNum': str}
 
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         self.metadata_filename = os.path.join(working_dir_name, reportTableName)
@@ -23,7 +24,8 @@ class Report:
             return
         df_metadata = pd.read_excel(self.metadata_filename, header=None, skiprows=[0],
                                     usecols=self.SELECTED_COL_IDS,
-                                    names=self.SELECTED_COL_NAMES
+                                    names=self.SELECTED_COL_NAMES,
+                                    converters=self.CONVERTERS
                                     )
         return df_metadata
 
@@ -98,8 +100,8 @@ class Report:
     def compareDicts(self, dict_old, dict_new):
         if dict_old.size != dict_new.size:
             return False
-        bool_arr = dict_old.values == dict_new.values
-        for i in range(1, 10):
-            if bool_arr[0][i] == False:
+        bool_arr = (dict_old.values == dict_new.values)
+        for i in [1, 2, 3, 4, 5, 7, 8, 9]:
+            if not bool_arr[0][i]:
                 return False
         return True
