@@ -33,7 +33,10 @@ class Report:
         return re.fullmatch(self.SERIAL_PATTERN, serial_num_str)
 
     def parseAmount(self, amountStr):
-        amountStr = amountStr.replace(',', '')
+        try:
+            amountStr = amountStr.replace(',', '')
+        except AttributeError:
+            return int(float(amountStr))
         try:
             mt = re.match(self.AMOUNT_PATTERN, amountStr)
         except TypeError:
@@ -48,13 +51,16 @@ class Report:
         return int(num_float)
 
     def roundPrice(self, price):
-        return round(price, 2)
+        try:
+            round(price, 2)
+        except TypeError:
+            self.parsePrice(price)
 
     def parsePrice(self, priceStr):
         try:
             priceStr = priceStr.strip()
         except AttributeError:
-            return -1
+            return round(float(priceStr), 2)
         priceStr = priceStr.replace(',', '')
         mt = re.match(self.AMOUNT_PATTERN, priceStr)
         if mt:
@@ -77,6 +83,19 @@ class Report:
                     if len(
                             row[col_name_serial_num]) != 5:
                         cleaned_df = cleaned_df.append(row)
+        return cleaned_df
+
+    def cleanTableWOUnited(self, df):
+        cleaned_df = DataFrame()
+        for i in range(len(df)):
+            row = df.loc[i, :]
+            # clean empty row
+            try:
+                if math.isnan(row['serialNum']) is not None:
+                    continue
+            except TypeError:
+                if self.isSerialNum(row['serialNum']):
+                    cleaned_df = cleaned_df.append(row)
         return cleaned_df
 
     def getRowByInd(self, df, ind):

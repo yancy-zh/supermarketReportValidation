@@ -5,6 +5,8 @@ import datetime
 import pandas as pd
 
 from newImportPurchaseStockReport import NewImportPurchaseStockReport
+from newImportReport import NewImportReport
+from oldImportReport import OldImportReport
 from stockReport import StockReport
 from newStockReport import NewStockReport
 from oldSaleReport import OldSaleReport
@@ -330,3 +332,60 @@ class ValidateReports:
                 print(f'新系统销售数量：{new_amount} 销售金额: {new_price}')
         print(
             f'交易流水项总数：{total}\n正确个数：{no_correct}\n交易流水项错误个数：{no_incorrect}\nindexErr: {no_index_err}\n valueErr: {no_val_err}')
+
+    def validateImportReports_generateCSVs(self, name, supplierName):
+        print(f'运行生成CSV：{name}-{supplierName}')
+        OLD_REPORT_FILENAME = f'6.6{supplierName}.xls'
+        NEW_REPORT_FILENAME = r"13 便利一店入库单.xls"
+
+        # import excel sheets
+        old_report = OldImportReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
+                                     self._SHEET_NAME)
+        new_report = NewImportReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                     self._SHEET_NAME)
+        df_old = old_report.importExcelSheet()
+        df_new = new_report.importExcelSheet()
+        df_old = old_report.cleanTableWOUnited(df_old)
+        df_new = old_report.cleanTableWOUnited(df_new)
+        df_old = old_report.convertTextDataToDigital(df_old)
+        df_new = old_report.convertTextDataToDigital(df_new)
+        df_old.to_csv(f'{name}_{supplierName}_df_old_sys.csv')
+        df_new.to_csv(f'{name}_{supplierName}_df_new_sys.csv')
+
+    def validateImportReports_compareCSVs(self, name, supplierName):
+        print(f'运行比对CSV：{name}-{supplierName}')
+        OLD_REPORT_FILENAME = f'6.6{supplierName}.xls'
+        NEW_REPORT_FILENAME = r"13 便利一店入库单.xls"
+        # import excel sheets
+        old_report = OldImportReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
+                                     self._SHEET_NAME)
+        new_report = NewImportReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                     self._SHEET_NAME)
+        df_old = pd.read_csv(f'{name}_{supplierName}_df_old_sys.csv')
+        df_new = pd.read_csv(f'{name}_{supplierName}_df_new_sys.csv')
+        total = len(df_old.index)
+        no_correct = 0
+        no_incorrect = 0
+        no_index_err = 0
+        no_val_err = 0
+        for ind in df_old.index:
+            serial_num = df_old['serialNum'][ind]
+            old_dict = old_report.getRowBySerialNum(df_old, serial_num)
+            new_dict = new_report.getRowBySerialNum(df_new, serial_num)
+            # old_dict = report_old.removeKeyFromDict(old_dict)
+            # new_dict = report_new.removeKeyFromDict(new_dict)
+            if old_report.compareDicts(old_dict, new_dict):
+                no_correct += 1
+            else:
+                no_incorrect += 1
+                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
+        print(f'总数据行数：{len(df_old)}')
+        print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
+
+    def validateImportReports(self, name):
+        SUPPLIERS = ['傲涵', '超乐惠', '丰泰', '和天熙', '蓝鲁', '品优兴', '腾旺', '小大']
+        for supplier in SUPPLIERS:
+            self.validateImportReports_generateCSVs(name, supplier)
+        for supplier in SUPPLIERS:
+            self.validateImportReports_compareCSVs(name, supplier)
+

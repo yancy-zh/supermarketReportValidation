@@ -13,4 +13,5 @@ if __name__ == '__main__':
     # validateReports.validateTransactionReports('比对流水表')
     # validateReports.validateSaleByCategory('比对按品类分类汇总销售表')
     # validateReports.compareTransactionReports('比对流水表按商品汇总')
-    validateReports.validatePurchaseSaleStockReports('比对进销存表')
+    # validateReports.validatePurchaseSaleStockReports('比对进销存表')
+    validateReports.validateImportReports('比对入库单')
