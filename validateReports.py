@@ -16,6 +16,8 @@ from newSaleByCategoryReport import NewSaleByCategoryReport
 from newTransactionReport import NewTransactionReport
 import math
 from oldImportPurchaseStockReport import OldImportPurchaseStockReport
+from importPurchaseStockGroupBySupplier import OldImportPurchaseStockGroupBySupplierReport
+from importPurchaseStockGroupBySupplier import NewImportPurchaseStockGroupBySupplierReport
 
 
 class ValidateReports:
@@ -135,8 +137,8 @@ class ValidateReports:
             serial_num = df_new['serialNum'][ind]
             if serial_num in report_new.EXCLUDED_SERIAL_NUMS:
                 continue
-            old_dict = report_old.getRowBySerialNum(df_old, serial_num)
-            new_dict = report_new.getRowBySerialNum(df_new, serial_num)
+            old_dict = report_old.getRowByKey(df_old, serial_num)
+            new_dict = report_new.getRowByKey(df_new, serial_num)
             # old_dict = report_old.removeKeyFromDict(old_dict)
             # new_dict = report_new.removeKeyFromDict(new_dict)
             if report_old.compareDicts(old_dict, new_dict):
@@ -346,9 +348,9 @@ class ValidateReports:
         df_old = old_report.importExcelSheet()
         df_new = new_report.importExcelSheet()
         df_old = old_report.cleanTableWOUnited(df_old)
-        df_new = old_report.cleanTableWOUnited(df_new)
+        df_new = new_report.cleanTableWOUnited(df_new)
         df_old = old_report.convertTextDataToDigital(df_old)
-        df_new = old_report.convertTextDataToDigital(df_new)
+        df_new = new_report.convertTextDataToDigital(df_new)
         df_old.to_csv(f'{name}_{supplierName}_df_old_sys.csv')
         df_new.to_csv(f'{name}_{supplierName}_df_new_sys.csv')
 
@@ -366,12 +368,10 @@ class ValidateReports:
         total = len(df_old.index)
         no_correct = 0
         no_incorrect = 0
-        no_index_err = 0
-        no_val_err = 0
         for ind in df_old.index:
             serial_num = df_old['serialNum'][ind]
-            old_dict = old_report.getRowBySerialNum(df_old, serial_num)
-            new_dict = new_report.getRowBySerialNum(df_new, serial_num)
+            old_dict = old_report.getRowByKey(df_old, serial_num)
+            new_dict = new_report.getRowByKey(df_new, serial_num)
             # old_dict = report_old.removeKeyFromDict(old_dict)
             # new_dict = report_new.removeKeyFromDict(new_dict)
             if old_report.compareDicts(old_dict, new_dict):
@@ -379,7 +379,7 @@ class ValidateReports:
             else:
                 no_incorrect += 1
                 print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
-        print(f'总数据行数：{len(df_old)}')
+        print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
 
     def validateImportReports(self, name):
@@ -389,3 +389,35 @@ class ValidateReports:
         for supplier in SUPPLIERS:
             self.validateImportReports_compareCSVs(name, supplier)
 
+    def validateImportPurchaseStockGroupBySupplier(self, name):
+        print(f'运行比对：{name}')
+        OLD_REPORT_FILENAME = f'6.6进销存变动表.xls'
+        NEW_REPORT_FILENAME = r"5 商品进销存变动表.xls"
+        # import excel sheets
+        old_report = OldImportPurchaseStockGroupBySupplierReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS,
+                                                                 OLD_REPORT_FILENAME,
+                                                                 self._SHEET_NAME)
+        new_report = NewImportPurchaseStockGroupBySupplierReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS,
+                                                                 NEW_REPORT_FILENAME,
+                                                                 self._SHEET_NAME)
+        df_old = old_report.importExcelSheet()
+        df_new = new_report.importExcelSheet()
+        df_old = old_report.cleanTableNotSupplier(df_old)
+        df_new = old_report.cleanTableNotSupplier(df_new)
+        df_old = old_report.convertTextDataToDigital(df_old)
+        df_new = new_report.convertTextDataToDigital(df_new)
+        total = len(df_old.index)
+        no_correct = 0
+        no_incorrect = 0
+        for ind in df_old.index:
+            supplier_name = df_old['supplierName'][ind]
+            old_dict = old_report.getRowByKey(df_old, supplier_name)
+            df_new.filter()
+            new_dict = new_report.getRowByKey(df_new, old_report.getSupplierNameNewSys(supplier_name))
+            if old_report.compareDicts(old_dict, new_dict):
+                no_correct += 1
+            else:
+                no_incorrect += 1
+                print(f'商品：{supplier_name}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
+        print(f'总数据行数：{total}')
+        print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')

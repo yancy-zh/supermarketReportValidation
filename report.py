@@ -13,6 +13,9 @@ class Report:
     AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')
     SERIAL_PATTERN = r'\d+'
     CONVERTERS = {'serialNum': str}
+    SKIP_ROWS = [0, 1, 2]
+    COMPARE_COLS = [1, 2, 3, 4, 5, 7, 8, 9]
+    KEY_COL = 'serialNum'
 
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         self.metadata_filename = os.path.join(working_dir_name, reportTableName)
@@ -22,7 +25,7 @@ class Report:
         if not os.path.isfile(self.metadata_filename):
             print(f"file {self.metadata_filename} doesn't exists")
             return
-        df_metadata = pd.read_excel(self.metadata_filename, header=None, skiprows=[0],
+        df_metadata = pd.read_excel(self.metadata_filename, header=None, skiprows=self.SKIP_ROWS,
                                     usecols=self.SELECTED_COL_IDS,
                                     names=self.SELECTED_COL_NAMES,
                                     converters=self.CONVERTERS
@@ -31,6 +34,12 @@ class Report:
 
     def isSerialNum(self, serial_num_str):
         return re.fullmatch(self.SERIAL_PATTERN, serial_num_str)
+
+    def isSupplierName(self, nameStr):
+        if nameStr not in ['供应商', '名称', '合计：']:
+            return True
+        else:
+            return False
 
     def parseAmount(self, amountStr):
         try:
@@ -98,6 +107,19 @@ class Report:
                     cleaned_df = cleaned_df.append(row)
         return cleaned_df
 
+    def cleanTableNotSupplier(self, df):
+        cleaned_df = DataFrame()
+        for i in range(len(df)):
+            row = df.loc[i, :]
+            # clean empty row
+            try:
+                if math.isnan(row['supplierName']) is not None:
+                    continue
+            except TypeError:
+                if self.isSupplierName(row['supplierName']):
+                    cleaned_df = cleaned_df.append(row)
+        return cleaned_df
+
     def getRowByInd(self, df, ind):
         return df.iloc[ind]
 
@@ -113,14 +135,14 @@ class Report:
             dict = df.to_dict()
         return dict
 
-    def getRowBySerialNum(self, df, serial_num):
-        return df[df['serialNum'] == serial_num]
+    def getRowByKey(self, df, key_col):
+        return df[df[self.KEY_COL] == key_col]
 
     def compareDicts(self, dict_old, dict_new):
         if dict_old.size != dict_new.size:
             return False
         bool_arr = (dict_old.values == dict_new.values)
-        for i in [1, 2, 3, 4, 5, 7, 8, 9]:
+        for i in self.COMPARE_COLS:
             if not bool_arr[0][i]:
                 return False
         return True
