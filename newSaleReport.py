@@ -3,9 +3,9 @@
 import pandas as pd
 import os
 import re
+from report import Report
 
-
-class NewSaleReport:
+class NewSaleReport(Report):
     _SELECTED_COL_NAMES_OLD_SYS = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice']
     _SELECTED_COL_IDS_OLD_SYS = r'F, K, L, N, O'
     _AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')

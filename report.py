@@ -13,7 +13,7 @@ class Report:
     AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')
     SERIAL_PATTERN = r'\d+'
     CONVERTERS = {'serialNum': str}
-    SKIP_ROWS = [0, 1, 2]
+    SKIP_ROWS = [0, 1]
     COMPARE_COLS = [1, 2, 3, 4, 5, 7, 8, 9]
     KEY_COL = 'serialNum'
 
@@ -89,8 +89,7 @@ class Report:
             except TypeError:
                 if self.isSerialNum(row[col_name_serial_num]):
                     # clean united sale
-                    if len(
-                            row[col_name_serial_num]) != 5:
+                    if len(row[col_name_serial_num]) != 5:
                         cleaned_df = cleaned_df.append(row)
         return cleaned_df
 

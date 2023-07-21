@@ -154,7 +154,7 @@ class ValidateReports:
 
     def validateSaleReports(self, name):
         print(f"运行{name}...")
-        OLD_REPORT_FILENAME = r"6.6销售表.xls"
+        OLD_REPORT_FILENAME = r"7.19汇总销售报表供货商.xls"
         NEW_REPORT_FILENAME = r"7 便利一店销售汇总报表（品名排序）.xls"
         # import excel sheets
         old_report = OldSaleReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
@@ -291,10 +291,10 @@ class ValidateReports:
         new_report = NewTransactionReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
                                           self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
-        df_old_sys_cleaned = old_report.cleanTable(df_old_sys)
+        df_old_sys_cleaned = old_report.cleanTable(df_old_sys, 2)
         df_old_sys_amount_sum = old_report.calAmountSummary(old_report.convertTextDataToDigital(df_old_sys_cleaned))
         df_old_sys_amount_sum.to_csv(f'{name}df_old_sys_amount_sum.csv')
-        df_new_sys_cleaned = new_report.cleanTable(df_new_sys)
+        df_new_sys_cleaned = new_report.cleanTable(df_new_sys, 2)
         df_new_sys_amount_sum = new_report.calAmountSummary(new_report.convertTextDataToDigital(df_new_sys_cleaned))
         df_new_sys_amount_sum.to_csv(f'{name}df_new_sys_amount_sum.csv')
 
@@ -320,7 +320,7 @@ class ValidateReports:
                 new_amount = row_in_new_sys.get('amount')
                 new_price = row_in_new_sys.get('salePrice')
                 print(
-                    f'{IndexError}ind: {ind}商品货号：{productId}数据比对不上\n旧系统销售数量：{old_amount} 销售金额: {old_price}')
+                    f'{IndexError}ind: {ind}\n商品货号：{productId}数据比对不上\n旧系统销售数量：{old_amount} 销售金额: {old_price}')
                 print(f'新系统销售数量：{new_amount} 销售金额: {new_price}')
             try:
                 if old_amount == new_amount and round(old_price, 2) == round(new_price, 2):
@@ -333,7 +333,7 @@ class ValidateReports:
                 no_val_err += 1
                 print(ValueError)
                 print(
-                    f'{ValueError}ind: {ind}商品货号：{productId}数据比对不上\n旧系统销售数量：{old_amount} 销售金额: {old_price}')
+                    f'{ValueError}ind: {ind}\n商品货号：{productId}数据比对不上\n旧系统销售数量：{old_amount} 销售金额: {old_price}')
                 print(f'新系统销售数量：{new_amount} 销售金额: {new_price}')
         print(
             f'交易流水项总数：{total}\n正确个数：{no_correct}\n交易流水项错误个数：{no_incorrect}\nindexErr: {no_index_err}\n valueErr: {no_val_err}')
