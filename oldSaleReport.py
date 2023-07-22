@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import pandas as pd
-import os
+import math
 import re
+
+from pandas import DataFrame
+
 from report import Report
 
 
@@ -13,8 +15,9 @@ class OldSaleReport(Report):
 
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
-        self.SELECTED_COL_IDS = r'E, G, H, I, J, M' #r'D, F, G, H, I, L'
-        self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice', 'unit']
+        self.SELECTED_COL_IDS = r'E, G, H, I, J, M, N'  # r'D, F, G, H, I, L'
+        self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice', 'unit',
+                                   'importPrice']
 
     def getSerialNum(self, df, ind):
         return df['serialNum'][ind]
@@ -24,26 +27,24 @@ class OldSaleReport(Report):
 
     def getPrice(self, df, serial_num, colName):
         row_filterd = df[df[self.SELECTED_COL_NAMES[0]] == serial_num]
-        res = None
         value = 0
         try:
             price = row_filterd[colName].iloc[0]
-            [res, value] = self.parsePrice(price)
+            value = self.parsePrice(price)
         except IndexError:
             print(f"该商品在新系统中不存在 商品编号: {serial_num}")
-        return [res, value]
+        return value
 
     def getAmount(self, df, serial_num, col_name):
         row_filterd = df[df[self.SELECTED_COL_NAMES[0]] == serial_num]
-        res = None
         value = 0
         try:
             price = row_filterd[col_name].iloc[0]
-            [res, value] = self.parseAmount(price)
+            value = self.parseAmount(price)
         except IndexError:
             print(f"该商品在旧系统中不存在 商品编号: {serial_num}")
             self._ENTRY_NOT_PRODUCT += 1
-        return [res, value]
+        return value
 
     def getSaleAmount(self, df, serial_num):
         return self.getAmount(df, serial_num, self.SELECTED_COL_NAMES[1])
@@ -56,24 +57,6 @@ class OldSaleReport(Report):
 
     def getRefundPrice(self, df, serial_num):
         return self.getPrice(df, serial_num, self.SELECTED_COL_NAMES[4])
-
-    def parseAmount(self, amountStr):
-        amountStr = amountStr.strip()
-        amountStr = amountStr.replace(',', '')
-        mt = re.match(self._AMOUNT_PATTERN, amountStr)
-        if mt:
-            return int(float(amountStr))
-        else:
-            return 0
-
-    def parsePrice(self, priceStr):
-        priceStr = priceStr.strip()
-        priceStr = priceStr.replace(',', '')
-        mt = re.match(self._AMOUNT_PATTERN, priceStr)
-        if mt:
-            return float(priceStr)
-        else:
-            return 0
 
     def getNotProductAmount(self):
         return self._ENTRY_NOT_PRODUCT
@@ -109,3 +92,21 @@ class OldSaleReport(Report):
         for ind, value in ser.items():
             sum += self.parsePrice(value)
         return sum
+
+    def cleanTable(self, df, col_idx_serial_no):
+        cleaned_df = DataFrame()
+        for i in range(len(df)):
+            row = df.loc[i, :]
+            col_name_serial_num = self.SELECTED_COL_NAMES[col_idx_serial_no]
+            # clean empty row
+            try:
+                if math.isnan(row[col_name_serial_num]) is not None:
+                    continue
+            except TypeError:
+                if self.isSerialNum(row[col_name_serial_num]):
+                    # clean united sale
+                    if len(row[col_name_serial_num]) == 5 or row['importPrice'] == 0 or row['unit'] == "公斤":
+                        continue
+                    else:
+                        cleaned_df = cleaned_df.append(row)
+        return cleaned_df

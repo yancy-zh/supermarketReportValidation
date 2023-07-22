@@ -21,13 +21,15 @@ from importPurchaseStockGroupBySupplier import NewImportPurchaseStockGroupBySupp
 
 
 class ValidateReports:
-    _STOCK_VALIDATION_WORKING_DIR_OLD_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\old\20230718"
-    _STOCK_VALIDATION_WORKING_DIR_NEW_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\new\20230718"
-    _DATETIME_TO_VALIDATE = datetime.datetime(year=2023, month=7, day=18)
+    _STOCK_VALIDATION_WORKING_DIR_OLD_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\old\20230720"
+    _STOCK_VALIDATION_WORKING_DIR_NEW_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\new\20230720"
+    _DATETIME_TO_VALIDATE = datetime.datetime(year=2023, month=7, day=20)
     _FORMAT_OF_PRINTED_DATE = "%Y-%m-%d"
     _SHEET_NAME = "Sheet1"
 
     def __init__(self):
+        print(
+            f'Hi, validate for date {self._DATETIME_TO_VALIDATE.__format__(self._FORMAT_OF_PRINTED_DATE)}')
         pass
 
     def validateStockReports(self, name):
@@ -153,16 +155,25 @@ class ValidateReports:
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
 
     def validateSaleReports(self, name):
-        print(f"运行{name}...")
-        OLD_REPORT_FILENAME = r"7.19汇总销售报表供货商.xls"
-        NEW_REPORT_FILENAME = r"7 便利一店销售汇总报表（品名排序）.xls"
+        print(f"运行{name}，日期：{self._DATETIME_TO_VALIDATE}...")
+        OLD_REPORT_FILENAME = r"7.20汇总销售.xls"
+        NEW_REPORT_FILENAME = r"7 便利一店销售汇总报表 - 品名排序.xls"
         # import excel sheets
         old_report = OldSaleReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
                                    self._SHEET_NAME)
-        df_old_sys = old_report.importExcelSheet()
         new_report = NewSaleReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME, self._SHEET_NAME)
-        df_new_sys = new_report.importExcelSheet()
-        total_line_num = df_old_sys.index.size
+        # df_old = old_report.importExcelSheet()
+        # df_new = new_report.importExcelSheet()
+        # # clean up the table
+        # df_old = old_report.cleanTable(df_old, 0)
+        # df_new = new_report.cleanTable(df_new, 0)
+        # # write data to csv
+        # df_old.to_csv(f'{name}old_report_cleaned.csv')
+        # df_new.to_csv(f'{name}new_report_cleaned.csv')
+        # import csv to df
+        df_old = pd.read_csv(f'{name}old_report_cleaned.csv')
+        df_new = pd.read_csv(f'{name}new_report_cleaned.csv')
+        total_line_num = df_old.index.size
         no_product = 0
         no_none_data = 0
         no_sub_total = 0
@@ -176,34 +187,14 @@ class ValidateReports:
         no_refund_amount_incorrect = 0
         no_refund_price_correct = 0
         no_refund_price_incorrect = 0
-        for ind in df_old_sys.index:
-            # skip the product which unit is jin
-            if old_report.getUnit(df_old_sys, ind) == "公斤":
-                no_united_sale += 1
-                continue
-            serial_num = old_report.getSerialNum(df_old_sys, ind)
+        for ind in df_old.index:
+            serial_num = old_report.getSerialNum(df_old, ind)
             try:
-                if math.isnan(serial_num):
-                    continue
-            except TypeError:
-                no_none_data += 1
-                if old_report.isSerialNum(serial_num) is None:
-                    no_sub_total += 1
-                    continue
-            if len(serial_num) < 6:
-                no_united_sale += 1
-                continue
-            # compare sale amount
-            old_sale_amount = 0
-            try:
-                [res, old_sale_amount] = old_report.getSaleAmount(df_old_sys, serial_num)
-                if res is None:
-                    no_naf += 1
-                    print("数量格式有误")
+                old_sale_amount = old_report.getSaleAmount(df_old, serial_num)
             except TypeError:
                 print("旧系统表中该行包含错误数据")
                 continue
-            [res, new_sale_amount] = new_report.getSaleAmount(df_new_sys, serial_num)
+            new_sale_amount = new_report.getSaleAmount(df_new, serial_num)
             if new_sale_amount == old_sale_amount:
                 no_product += 1
                 no_sale_amount_correct += 1
@@ -214,14 +205,11 @@ class ValidateReports:
                     f"商品 {serial_num} 的銷售数量核对不上，在旧系统中为：{old_sale_amount}，在新系统中为{new_sale_amount}")
             # compare refund amount
             try:
-                [res, old_refund_amount] = old_report.getRefundAmount(df_old_sys, serial_num)
-                if res is None:
-                    no_naf += 1
-                    print("数量格式有误")
+                old_refund_amount = old_report.getRefundAmount(df_old, serial_num)
             except TypeError:
                 print("旧系统表中该行包含错误数据")
                 continue
-            [res, new_refund_amount] = new_report.getRefundAmount(df_new_sys, serial_num)
+            new_refund_amount = new_report.getRefundAmount(df_new, serial_num)
             if new_refund_amount == old_refund_amount:
                 no_refund_amount_correct += 1
             else:
@@ -229,8 +217,8 @@ class ValidateReports:
                 print(
                     f"商品 {serial_num} 的退貨数量核对不上，在旧系统中为：{old_refund_amount}，在新系统中为{new_refund_amount}")
             # compare sale price
-            [_, old_sale_price] = old_report.getSalePrice(df_old_sys, serial_num)
-            [_, new_sale_price] = new_report.getSalePrice(df_new_sys, serial_num)
+            old_sale_price = old_report.getSalePrice(df_old, serial_num)
+            new_sale_price = new_report.getSalePrice(df_new, serial_num)
             if old_sale_price == new_sale_price:
                 no_sale_price_correct += 1
             else:
@@ -238,8 +226,8 @@ class ValidateReports:
                 print(
                     f"商品 {serial_num} 的销售金额核对不上，在旧系统中为：{old_sale_price}，在新系统中为{new_sale_price}")
             # compare refund price
-            [_, old_refund_price] = old_report.getRefundPrice(df_old_sys, serial_num)
-            [_, new_refund_price] = new_report.getRefundPrice(df_new_sys, serial_num)
+            old_refund_price = old_report.getRefundPrice(df_old, serial_num)
+            new_refund_price = new_report.getRefundPrice(df_new, serial_num)
             if old_refund_price == new_refund_price:
                 no_refund_price_correct += 1
             else:
@@ -280,9 +268,9 @@ class ValidateReports:
         print(f'数据正确共：{no_category_sum_correct}\n数据错误共：{no_category_sum_incorrect}')
 
     def validateTransactionReports(self, name):
-        print(f"运行{name}...")
-        OLD_REPORT_FILENAME = r"7.19销售流水.xls"
-        NEW_REPORT_FILENAME = r"9 前台商品销售流水.xls"
+        print(f"运行{name}，日期：{self._DATETIME_TO_VALIDATE}...")
+        OLD_REPORT_FILENAME = r"7.21流水.xls"
+        NEW_REPORT_FILENAME = r"9 前台商品销售流水（7.22）.xls"
 
         # import excel sheets
         old_report = OldTransactionRecordReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
