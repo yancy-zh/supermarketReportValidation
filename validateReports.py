@@ -38,7 +38,7 @@ class ValidateReports:
         # compare two stock reports
         # parameters
         OLD_STOCK_REPORT_FILENAME = r"7.18库存表.xls"
-        NEW_STOCK_REPORT_FILENAME = r"3 商品库存汇总报表.xls"
+        NEW_STOCK_REPORT_FILENAME = r"3 库存表总 品类排序.xls"
 
         print(
             f'Hi, {name} for date {self._DATETIME_TO_VALIDATE.__format__(self._FORMAT_OF_PRINTED_DATE)}')  # Press Ctrl+Shift+B to toggle the breakpoint.
@@ -48,14 +48,14 @@ class ValidateReports:
         new_stock_report = NewStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_STOCK_REPORT_FILENAME,
                                           self._SHEET_NAME)
 
-        # df_stock_old_sys = old_stock_report.importExcelSheet()
-        # df_stock_new_sys = new_stock_report.importExcelSheet()
-        # # clean tables
-        # df_stock_old_sys = old_stock_report.cleanTable(df_stock_old_sys, 1)
-        # df_stock_new_sys = new_stock_report.cleanTable(df_stock_new_sys, 2)
-        # # write data to csv
-        # df_stock_old_sys.to_csv(f'{name}old_stock_df_cleaned.csv')
-        # df_stock_new_sys.to_csv(f'{name}new_stock_df_cleaned.csv')
+        df_stock_old_sys = old_stock_report.importExcelSheet()
+        df_stock_new_sys = new_stock_report.importExcelSheet()
+        # clean tables
+        df_stock_old_sys = old_stock_report.cleanTable(df_stock_old_sys, 1)
+        df_stock_new_sys = new_stock_report.cleanTable(df_stock_new_sys, 2)
+        # write data to csv
+        df_stock_old_sys.to_csv(f'{name}old_stock_df_cleaned.csv')
+        df_stock_new_sys.to_csv(f'{name}new_stock_df_cleaned.csv')
 
         # import csv to df
         df_stock_old_sys = pd.read_csv(f'{name}old_stock_df_cleaned.csv')
@@ -115,7 +115,7 @@ class ValidateReports:
     def validatePurchaseSaleStockReports(self, name):
         print(f'运行比对：{name}')
         OLD_REPORT_FILENAME = r"7.19-7.22动态明细.xls"
-        NEW_REPORT_FILENAME = r"4 商品进销存汇总表.xls"
+        NEW_REPORT_FILENAME = r"G04 商品进销存汇总表 - 230818.xls"
         no_correct = 0
         no_incorrect = 0
         # initialize objs
@@ -383,8 +383,8 @@ class ValidateReports:
 
     def validateImportPurchaseStockGroupBySupplier(self, name):
         print(f'运行比对：{name}')
-        OLD_REPORT_FILENAME = f'7.19-7.22动态.xls'
-        NEW_REPORT_FILENAME = r"5 商品进销存变动表.xls"
+        OLD_REPORT_FILENAME = f'7.19-7.22进销存变动表-删掉为零的.xls'
+        NEW_REPORT_FILENAME = r"G05 商品进销存变动表 - 230818.xls"
         # import excel sheets
         old_report = OldImportPurchaseStockGroupBySupplierReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS,
                                                                  OLD_REPORT_FILENAME,
@@ -450,3 +450,8 @@ class ValidateReports:
                 print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
         print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
+
+    def validateInventoryReports(self, name):
+        print(f'运行比对：{name}')
+        OLD_REPORT_FILENAME = f'.xls'
+        NEW_REPORT_FILENAME = r'.xls'

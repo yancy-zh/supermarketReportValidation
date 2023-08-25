@@ -10,10 +10,10 @@ class OldImportPurchaseStockGroupBySupplierReport(Report):
                                    'saleAmount', 'salePrice', 'postSaleAmount', 'postSalePrice']
         self.SELECTED_COL_IDS = r'C, D, E, F, G, H, I, J, K'
         self.CONVERTERS = {}
-        self.SKIP_ROWS = [0, 1, 2]
+        self.SKIP_ROWS = []
         self.COMPARE_COLS = [0, 1, 2, 3, 4, 5, 6, 7]
         self.KEY_COL = 'supplierName'
-        self.SUPPLIER_NAME_MAP = {'山东鲁花集团': '山东鲁花集团商贸有限公司西安分公司',
+        self.SUPPLIER_NAME_MAP = {'山东鲁花集团商贸有限公司': '山东鲁花集团商贸有限公司西安分公司',
                                   '老牛面粉厂': '陕西老牛面粉有限公司',
                                   '菲达食品公司': '西安菲达食品商贸有限公司',
                                   '蓝鲁蛋糕店': '西安经济技术开发区蓝鲁蛋糕店',
