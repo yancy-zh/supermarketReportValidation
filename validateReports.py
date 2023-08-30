@@ -7,7 +7,7 @@ import pandas as pd
 from newImportPurchaseStockReport import NewImportPurchaseStockReport
 from newImportReport import NewImportReport
 from oldImportReport import OldImportReport
-from stockReport import StockReport
+from oldStockReport import OldStockReport
 from newStockReport import NewStockReport
 from oldSaleReport import OldSaleReport
 from newSaleReport import NewSaleReport
@@ -38,12 +38,12 @@ class ValidateReports:
         # compare two stock reports
         # parameters
         OLD_STOCK_REPORT_FILENAME = r"7.18库存表.xls"
-        NEW_STOCK_REPORT_FILENAME = r"3 库存表总 品类排序.xls"
+        NEW_STOCK_REPORT_FILENAME = r"3 商品库存汇总报表0725.xls"
 
         print(
             f'Hi, {name} for date {self._DATETIME_TO_VALIDATE.__format__(self._FORMAT_OF_PRINTED_DATE)}')  # Press Ctrl+Shift+B to toggle the breakpoint.
         # import excel sheets
-        old_stock_report = StockReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_STOCK_REPORT_FILENAME,
+        old_stock_report = OldStockReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_STOCK_REPORT_FILENAME,
                                        self._SHEET_NAME)
         new_stock_report = NewStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_STOCK_REPORT_FILENAME,
                                           self._SHEET_NAME)
@@ -52,8 +52,8 @@ class ValidateReports:
         df_stock_new_sys = new_stock_report.importExcelSheet()
         # clean tables
         df_stock_old_sys = old_stock_report.cleanTable(df_stock_old_sys, 1)
-        df_stock_new_sys = new_stock_report.cleanTable(df_stock_new_sys, 2)
-        # write data to csv
+        df_stock_new_sys = new_stock_report.cleanTable(df_stock_new_sys, 1)
+        # # write data to csv
         df_stock_old_sys.to_csv(f'{name}old_stock_df_cleaned.csv')
         df_stock_new_sys.to_csv(f'{name}new_stock_df_cleaned.csv')
 

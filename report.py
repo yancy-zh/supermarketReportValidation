@@ -84,14 +84,15 @@ class Report:
             col_name_serial_num = self.SELECTED_COL_NAMES[col_idx_serial_no]
             # clean empty row
             try:
-                if math.isnan(row[col_name_serial_num]) is not None:
+                if math.isnan(row[col_name_serial_num]):
                     continue
             except TypeError:
-                if self.isSerialNum(row[col_name_serial_num]):
+                if self.isSerialNum(row[col_name_serial_num]) is not None:
                     # clean united sale
                     if len(row[col_name_serial_num]) != 5:
                         cleaned_df = cleaned_df.append(row)
         return cleaned_df
+
 
     def cleanTableWOUnited(self, df):
         cleaned_df = DataFrame()
@@ -145,3 +146,16 @@ class Report:
             if not bool_arr[0][i]:
                 return False
         return True
+
+    def filterUnitedProducts(self, df):
+        cleaned_df = DataFrame()
+        for i in range(len(df)):
+            row = df.loc[i, :]
+            # clean empty row
+            try:
+                if math.isnan(row['serialNum']) is not None:
+                    continue
+            except TypeError:
+                if self.isSerialNum(row['serialNum']):
+                    cleaned_df = cleaned_df.append(row)
+        return cleaned_df
