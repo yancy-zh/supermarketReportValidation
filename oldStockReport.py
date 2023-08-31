@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import re
-from report import Report
-from pandas import DataFrame
 import math
+
+from pandas import DataFrame
+
+from report import Report
 
 
 class OldStockReport(Report):
@@ -51,3 +52,20 @@ class OldStockReport(Report):
                         self.parseAmount(row['amount']) != 0:
                     cleaned_df = cleaned_df.append(row)
         return cleaned_df
+
+    def filterUnitedProducts(self, df):
+        # select the united products from the old system
+        filtered_df = DataFrame()
+        for i in range(len(df)):
+            row = df.loc[i, :]
+            # clean irrelevant row
+            try:
+                if math.isnan(row['serialNum']):
+                    continue
+            except TypeError:
+                if self.isSerialNum(row['serialNum']):
+                    if row['unit'] == '公斤' \
+                            or len(row['serialNum']) == 5 \
+                            or row['categoryName'] == '蔬菜':
+                        filtered_df = filtered_df.append(row)
+        return filtered_df

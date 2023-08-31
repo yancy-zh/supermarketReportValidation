@@ -1,6 +1,9 @@
-from report import Report
-from pandas import DataFrame
 import math
+
+from pandas import DataFrame
+
+from report import Report
+
 
 class NewImportPurchaseStockReport(Report):
 
@@ -65,14 +68,16 @@ class NewImportPurchaseStockReport(Report):
         cleaned_df = DataFrame()
         for i in range(len(df)):
             row = df.loc[i, :]
-            col_name_serial_num = self.SELECTED_COL_NAMES[col_idx_serial_no]
+            col_name_serial_num = "serialNum"
             # clean empty row
             try:
-                if math.isnan(row[col_name_serial_num]) is not None:
+                if math.isnan(row[col_name_serial_num]):
                     continue
             except TypeError:
-                if self.isSerialNum(row[col_name_serial_num]):
+                if self.isSerialNum(row[col_name_serial_num]) \
+                        and row[col_name_serial_num] not in self.UNITED_SALE \
+                        and len(row[col_name_serial_num]) != 5 \
+                        and self.parseAmount(row['preSaleAmount']) != 0:
                     # clean united sale
-                    if not row[col_name_serial_num] in self.UNITED_SALE:
-                        cleaned_df = cleaned_df.append(row)
+                    cleaned_df = cleaned_df.append(row)
         return cleaned_df

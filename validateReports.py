@@ -1,25 +1,25 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import datetime
+import math
 
 import pandas as pd
 
+from importPurchaseStockGroupBySupplier import NewImportPurchaseStockGroupBySupplierReport
+from importPurchaseStockGroupBySupplier import OldImportPurchaseStockGroupBySupplierReport
 from newImportPurchaseStockReport import NewImportPurchaseStockReport
 from newImportReport import NewImportReport
-from oldImportReport import OldImportReport
-from oldStockReport import OldStockReport
-from newStockReport import NewStockReport
-from oldSaleReport import OldSaleReport
-from newSaleReport import NewSaleReport
-from oldTransactionRecordReport import OldTransactionRecordReport
-from newSaleByCategoryReport import NewSaleByCategoryReport
-from newTransactionReport import NewTransactionReport
-import math
-from oldImportPurchaseStockReport import OldImportPurchaseStockReport
-from importPurchaseStockGroupBySupplier import OldImportPurchaseStockGroupBySupplierReport
-from importPurchaseStockGroupBySupplier import NewImportPurchaseStockGroupBySupplierReport
-from oldInventoryCountingReport import OldInventoryCountingReport
 from newInventoryCountingReport import NewInventoryCountingReport
+from newSaleByCategoryReport import NewSaleByCategoryReport
+from newSaleReport import NewSaleReport
+from newStockReport import NewStockReport
+from newTransactionReport import NewTransactionReport
+from oldImportPurchaseStockReport import OldImportPurchaseStockReport
+from oldImportReport import OldImportReport
+from oldInventoryCountingReport import OldInventoryCountingReport
+from oldSaleReport import OldSaleReport
+from oldStockReport import OldStockReport
+from oldTransactionRecordReport import OldTransactionRecordReport
 
 
 class ValidateReports:
@@ -44,7 +44,7 @@ class ValidateReports:
             f'Hi, {name} for date {self._DATETIME_TO_VALIDATE.__format__(self._FORMAT_OF_PRINTED_DATE)}')  # Press Ctrl+Shift+B to toggle the breakpoint.
         # import excel sheets
         old_stock_report = OldStockReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_STOCK_REPORT_FILENAME,
-                                       self._SHEET_NAME)
+                                          self._SHEET_NAME)
         new_stock_report = NewStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_STOCK_REPORT_FILENAME,
                                           self._SHEET_NAME)
 
@@ -53,7 +53,7 @@ class ValidateReports:
         # clean tables
         df_stock_old_sys = old_stock_report.cleanTable(df_stock_old_sys, 1)
         df_stock_new_sys = new_stock_report.cleanTable(df_stock_new_sys, 1)
-        # # write data to csv
+        # write data to csv
         df_stock_old_sys.to_csv(f'{name}old_stock_df_cleaned.csv')
         df_stock_new_sys.to_csv(f'{name}new_stock_df_cleaned.csv')
 
@@ -451,7 +451,59 @@ class ValidateReports:
         print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
 
-    def validateInventoryReports(self, name):
-        print(f'运行比对：{name}')
-        OLD_REPORT_FILENAME = f'.xls'
-        NEW_REPORT_FILENAME = r'.xls'
+    def cleanUpReport(self, name):
+        print(f'运行：{name}')
+        OLD_REPORT_FILENAME = f'7.18库存表.xls'
+        old_report = OldStockReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
+                                    self._SHEET_NAME)
+        df_old = old_report.importExcelSheet()
+        df_united = old_report.filterUnitedProducts(df_old)
+        df_united.to_csv(f'{name}_联营商品.csv')
+
+    def checkStockAndImportPurchase(self, name):
+        OLD_STOCK_REPORT_FILENAME = r"7.18库存表.xls"
+        NEW_STOCK_REPORT_FILENAME = r"4 商品进销存汇总表-0826.xls"
+        no_correct = 0
+        no_incorrect = 0
+        print(
+            f'Hi, {name} for date {self._DATETIME_TO_VALIDATE.__format__(self._FORMAT_OF_PRINTED_DATE)}')  # Press Ctrl+Shift+B to toggle the breakpoint.
+        # import excel sheets
+        old_report = OldStockReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_STOCK_REPORT_FILENAME,
+                                    self._SHEET_NAME)
+        new_report = NewImportPurchaseStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_STOCK_REPORT_FILENAME,
+                                                  self._SHEET_NAME)
+        # df_old = old_report.importExcelSheet()
+        # df_new = new_report.importExcelSheet()
+        # # clean tables
+        # df_old = old_report.cleanTable(df_old, 1)
+        # df_new = new_report.cleanTable(df_new, 1)
+        # # write data to csv
+        # df_old.to_csv(f'{name}old_stock_df_cleaned.csv')
+        # df_new.to_csv(f'{name}new_import_purchase_stock_df_cleaned.csv')
+        # import csv to df
+        df_old = pd.read_csv(f'{name}old_stock_df_cleaned.csv')
+        df_new = pd.read_csv(f'{name}new_import_purchase_stock_df_cleaned.csv')
+        # loop in the table
+        for ind in df_new.index:
+            serial_num = df_new['serialNum'][ind]
+            old_dict = old_report.getRowByKey(df_old, serial_num)
+            new_dict = new_report.getRowByKey(df_new, serial_num)
+            try:
+                old_amount = old_report.parseAmount(old_dict.values[0, 1])
+            except IndexError:
+                print(f'商品：{serial_num} 数据对不上，在旧系统中不存在或库存为0')
+                no_incorrect += 1
+                continue
+            try:
+                new_amount = new_report.parseAmount(new_dict.values[0, 5])
+            except IndexError:
+                print(f'商品：{serial_num} 数据对不上，在新系统中不存在或库存为0')
+                no_incorrect += 1
+                continue
+            if old_amount == new_amount:
+                no_correct += 1
+            else:
+                no_incorrect += 1
+                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_amount}\n- 新系统：{new_amount}')
+        print(f'总数据行数：{len(df_new)}')
+        print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')

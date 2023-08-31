@@ -1,15 +1,16 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import pandas as pd
+import math
 import os
 import re
+
+import pandas as pd
 from pandas import DataFrame
-import math
 
 
 class Report:
-    SELECTED_COL_NAMES = []
-    SELECTED_COL_IDS = ''
+    SELECTED_COL_IDS = None
+    SELECTED_COL_NAMES = None
     AMOUNT_PATTERN = re.compile(r'-?\d*\,?\d+\.?\d?\d?')
     SERIAL_PATTERN = r'\d+'
     CONVERTERS = {'serialNum': str}
@@ -93,7 +94,6 @@ class Report:
                         cleaned_df = cleaned_df.append(row)
         return cleaned_df
 
-
     def cleanTableWOUnited(self, df):
         cleaned_df = DataFrame()
         for i in range(len(df)):
@@ -146,16 +146,3 @@ class Report:
             if not bool_arr[0][i]:
                 return False
         return True
-
-    def filterUnitedProducts(self, df):
-        cleaned_df = DataFrame()
-        for i in range(len(df)):
-            row = df.loc[i, :]
-            # clean empty row
-            try:
-                if math.isnan(row['serialNum']) is not None:
-                    continue
-            except TypeError:
-                if self.isSerialNum(row['serialNum']):
-                    cleaned_df = cleaned_df.append(row)
-        return cleaned_df
