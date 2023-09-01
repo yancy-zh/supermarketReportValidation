@@ -7,6 +7,7 @@ import pandas as pd
 
 from importPurchaseStockGroupBySupplier import NewImportPurchaseStockGroupBySupplierReport
 from importPurchaseStockGroupBySupplier import OldImportPurchaseStockGroupBySupplierReport
+from newBasicInfoReport import NewBasicInforReport
 from newImportPurchaseStockReport import NewImportPurchaseStockReport
 from newImportReport import NewImportReport
 from newInventoryCountingReport import NewInventoryCountingReport
@@ -14,6 +15,7 @@ from newSaleByCategoryReport import NewSaleByCategoryReport
 from newSaleReport import NewSaleReport
 from newStockReport import NewStockReport
 from newTransactionReport import NewTransactionReport
+from oldBasicInfoReport import OldBasicInforReport
 from oldImportPurchaseStockReport import OldImportPurchaseStockReport
 from oldImportReport import OldImportReport
 from oldInventoryCountingReport import OldInventoryCountingReport
@@ -273,7 +275,7 @@ class ValidateReports:
     def validateTransactionReports(self, name):
         print(f"运行{name}，日期：{self._DATETIME_TO_VALIDATE}...")
         OLD_REPORT_FILENAME = r"7.19-7.22流水.xls"
-        NEW_REPORT_FILENAME = r"9 前台商品销售流水（7.20-7.25）.xls"
+        NEW_REPORT_FILENAME = r"9 前台商品销售流水（0831导）.xls"
 
         # import excel sheets
         old_report = OldTransactionRecordReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
@@ -291,8 +293,8 @@ class ValidateReports:
 
     def compareTransactionReports(self, name):
         print(f'运行：{name}')
-        df_old = pd.read_csv("比对流水表df_old_sys_amount_sum.csv")
-        df_new = pd.read_csv("比对流水表df_new_sys_amount_sum.csv")
+        df_old = pd.read_csv(f'{name}df_old_sys_amount_sum.csv')
+        df_new = pd.read_csv(f'{name}df_new_sys_amount_sum.csv')
         total = len(df_old.index)
         no_correct = 0
         no_incorrect = 0
@@ -506,4 +508,41 @@ class ValidateReports:
                 no_incorrect += 1
                 print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_amount}\n- 新系统：{new_amount}')
         print(f'总数据行数：{len(df_new)}')
+        print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
+
+    def validateBasicInfoReports(self, name):
+        OLD_REPORT_FILENAME = r"7.18z商品一览表.xls"
+        NEW_REPORT_FILENAME = r"商品一览表.xlsx"
+        print(
+            f"运行{name}，文件名：\n-{OLD_REPORT_FILENAME}\n-{NEW_REPORT_FILENAME}\n日期：{self._DATETIME_TO_VALIDATE}...")
+        # import excel sheets
+        old_report = OldBasicInforReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
+                                         self._SHEET_NAME)
+        new_report = NewBasicInforReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                         self._SHEET_NAME)
+        # df_old = old_report.importExcelSheet()
+        # df_new = new_report.importExcelSheet()
+        # # # clean up the table
+        # df_old = old_report.cleanTable(df_old, 2)
+        # df_new = new_report.cleanTable(df_new, 1)
+        # # # write data to csv
+        # df_old.to_csv(f'{name}old_report_cleaned.csv')
+        # df_new.to_csv(f'{name}new_report_cleaned.csv')
+        # import csv to df
+        df_old = pd.read_csv(f'{name}old_report_cleaned.csv')
+        df_new = pd.read_csv(f'{name}new_report_cleaned.csv')
+        # loop in the table
+        total = len(df_new.index)
+        no_correct = 0
+        no_incorrect = 0
+        for ind in df_new.index:
+            serial_num = df_new['serialNum'][ind]
+            old_dict = old_report.getRowByKey(df_old, serial_num)
+            new_dict = new_report.getRowByKey(df_new, serial_num)
+            if new_report.compareDicts(old_dict, new_dict):
+                no_correct += 1
+            else:
+                no_incorrect += 1
+                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
+        print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
