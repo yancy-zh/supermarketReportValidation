@@ -12,7 +12,7 @@ class NewSaleReport(Report):
     _ENTRY_NOT_FOUND = 0
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
-        self.SELECTED_COL_IDS = r'F, K, L, N, O, Q' #'E, J, K, L, M, O'
+        self.SELECTED_COL_IDS = r'E, J, K, L, M, O'  # 'F, K, L, N, O, Q'
         self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice', 'importPrice']
     def importExcelSheet(self):
         if not os.path.isfile(self.metadata_filename):

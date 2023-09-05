@@ -16,4 +16,5 @@ if __name__ == '__main__':
     # validateReports.validateInventoryReports('商品一览表')
     # validateReports.cleanUpReport('报表数据筛选')
     # validateReports.checkStockAndImportPurchase('库存表与进销存表的库存数量')
-    validateReports.validateBasicInfoReports('比对商品一览表')
+    # validateReports.validateBasicInfoReports('商品一览表')
+    validateReports.validateSaleAndImportPurchaseStock('销售表与进销存表的销售数量及金额')

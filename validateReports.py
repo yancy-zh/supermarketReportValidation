@@ -28,6 +28,7 @@ class ValidateReports:
     _STOCK_VALIDATION_WORKING_DIR_OLD_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\old\20230719-0722"
     _STOCK_VALIDATION_WORKING_DIR_NEW_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\new\20230719-0722"
     _DATETIME_TO_VALIDATE = datetime.datetime(year=2023, month=7, day=25)
+    _DATETIME_TODAY = datetime.datetime.today()
     _FORMAT_OF_PRINTED_DATE = "%Y-%m-%d"
     _SHEET_NAME = "Sheet1"
 
@@ -544,5 +545,50 @@ class ValidateReports:
             else:
                 no_incorrect += 1
                 print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
+        print(f'总数据行数：{total}')
+        print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
+
+    def validateSaleAndImportPurchaseStock(self, name):
+        REPORT1_FILENAME = r"7 便利一店销售汇总报表（0905导）.xls"
+        REPORT2_FILENAME = r"4 商品进销存汇总表-0826.xls"
+        BASIC_INFO_FILENAME = r"7.18z商品一览表.xls"
+        print(
+            f"运行{name}，文件名：\n-{REPORT1_FILENAME}\n-{REPORT2_FILENAME}\n日期：{self._DATETIME_TO_VALIDATE}...")
+        # import excel sheets
+        report1 = NewSaleReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, REPORT1_FILENAME,
+                                self._SHEET_NAME)
+        report1.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice']
+        report1.SELECTED_COL_IDS = 'E, N, O, P, R'
+        report2 = NewImportPurchaseStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, REPORT2_FILENAME,
+                                               self._SHEET_NAME)
+        # df_1 = report1.importExcelSheet()
+        # df_2 = report2.importExcelSheet()
+        # # # # clean up the table
+        # df_1 = report1.cleanTable(df_1, 0)
+        # df_2 = report2.cleanTable(df_2, 0)
+        # # write data to csv
+        # df_1.to_csv(f'{name}report1_cleaned.csv')
+        # df_2.to_csv(f'{name}report2_cleaned.csv')
+        # import csv to df
+        df_1 = pd.read_csv(f'{name}report1_cleaned.csv')
+        df_2 = pd.read_csv(f'{name}report2_cleaned.csv')
+        # loop in the table
+        total = len(df_1.index)
+        no_correct = 0
+        no_incorrect = 0
+        for ind in df_1.index:
+            serial_num = df_1['serialNum'][ind]
+            saleAmount_1 = report1.getSaleAmount(df_1, serial_num) + report1.getRefundAmount(df_1, serial_num)
+            try:
+                saleAmount_2 = report2.getRowByKey(df_2, serial_num)['saleAmount'].values[0]
+            except IndexError:
+                print(f"该商品在进销存表中不存在：{serial_num}")
+            dict_1 = report1.getRowByKey(df_1, serial_num)
+            dict_2 = report2.getRowByKey(df_2, serial_num)
+            if saleAmount_1 == saleAmount_2:
+                no_correct += 1
+            else:
+                no_incorrect += 1
+                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{dict_1.values}\n- 新系统：{dict_2.values}')
         print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
