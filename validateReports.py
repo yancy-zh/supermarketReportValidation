@@ -557,25 +557,28 @@ class ValidateReports:
         # import excel sheets
         report1 = NewSaleReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, REPORT1_FILENAME,
                                 self._SHEET_NAME)
-        report1.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice']
-        report1.SELECTED_COL_IDS = 'E, N, O, P, R'
+        report1.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'saleTotal', 'refundAmount', 'refundPrice', 'cost',
+                                      'salePrice']
+        report1.SELECTED_COL_IDS = 'E, N, O, P, R, T, U'
         report2 = NewImportPurchaseStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, REPORT2_FILENAME,
                                                self._SHEET_NAME)
         basic_info_report = NewBasicInfoReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, BASIC_INFO_FILENAME,
                                                self._SHEET_NAME)
-        df_1 = report1.importExcelSheet()
-        df_2 = report2.importExcelSheet()
-        df_3 = basic_info_report.importExcelSheet()
-        # # # # clean up the table
+        # df_1 = report1.importExcelSheet()
+        # df_2 = report2.importExcelSheet()
+        # df_3 = basic_info_report.importExcelSheet()
+        # clean up the table
         # df_1 = report1.cleanTable(df_1, 0)
         # df_2 = report2.cleanTable(df_2, 0)
-        df_3 = basic_info_report.cleanTable(df_3, 1)
+        # df_3 = basic_info_report.cleanTable(df_3, 1)
         # # write data to csv
         # df_1.to_csv(f'{name}report1_cleaned.csv')
         # df_2.to_csv(f'{name}report2_cleaned.csv')
+        # df_3.to_csv(f'{name}report3_cleaned.csv')
         # import csv to df
         df_1 = pd.read_csv(f'{name}report1_cleaned.csv')
         df_2 = pd.read_csv(f'{name}report2_cleaned.csv')
+        df_3 = pd.read_csv(f'{name}report3_cleaned.csv')
         # loop in the table
         total = len(df_1.index)
         no_correct = 0
@@ -591,24 +594,38 @@ class ValidateReports:
 
             dict_1 = report1.getRowByKey(df_1, serial_num)
             dict_2 = report2.getRowByKey(df_2, serial_num)
-            dict_3 = df_3[df_3['serialNum'] == str(serial_num)]
-            try:
+            dict_3 = df_3[df_3['serialNum'] == serial_num]
+            try:  # 进销存表调用成本价
                 cost_import_purchase = dict_2['preSaleCost'].values[0]
             except IndexError:
                 cost_import_purchase = -1
                 print(f'该商品在进销存表中不存在.')
-            try:
+            try:  # 商品一览表调用成本价
                 cost_basic_info = dict_3['cost'].values[0]
             except IndexError:
                 cost_basic_info = -1
                 print(f"该商品在商品一览表中不存在.")
+            try:  # 销售表调用售价
+                sale_price_sale_summary = dict_1['salePrice'].values[0]
+            except IndexError:
+                sale_price_sale_summary = -1
+                print(f"该商品在销售表中不存在.")
+            try:  # 商品一览表调用售价
+                sale_price_basic_info = dict_3['currPrice'].values[0]
+            except IndexError:
+                sale_price_basic_info = -1
+                print(f"该商品在商品一览表中不存在.")
+
             # 核对进销存表里的销售数量、进价
-            if saleAmount_1 == saleAmount_2 and cost_basic_info == cost_import_purchase:
+            if saleAmount_1 == saleAmount_2 \
+                    and cost_basic_info == cost_import_purchase \
+                    and sale_price_basic_info == float(sale_price_sale_summary):
                 no_correct += 1
             else:
                 no_incorrect += 1
                 print(f'商品：{serial_num}数据对不上:\n 数量 - 表1：{saleAmount_1}，- 表2：{saleAmount_2}')
                 print(f'进价 - 表2：{cost_import_purchase}，- 表3：{cost_basic_info}')
+                print(f'售价 - 表1：{sale_price_sale_summary}，- 表3：{sale_price_basic_info}')
                 continue
         print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
