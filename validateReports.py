@@ -7,7 +7,7 @@ import pandas as pd
 
 from importPurchaseStockGroupBySupplier import NewImportPurchaseStockGroupBySupplierReport
 from importPurchaseStockGroupBySupplier import OldImportPurchaseStockGroupBySupplierReport
-from newBasicInfoReport import NewBasicInforReport
+from newBasicInfoReport import NewBasicInfoReport
 from newImportPurchaseStockReport import NewImportPurchaseStockReport
 from newImportReport import NewImportReport
 from newInventoryCountingReport import NewInventoryCountingReport
@@ -158,7 +158,7 @@ class ValidateReports:
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
 
     def validateSaleReports(self, name):
-        print(f"运行{name}，日期：{self._DATETIME_TO_VALIDATE}...")
+        print(f"运行{name}，日期：{self._DATETIME_TODAY}...")
         OLD_REPORT_FILENAME = r"7.19-7.22销售明细.xls"
         NEW_REPORT_FILENAME = r"7 便利一店销售汇总报表-按品名排序 7.20-7.25.xls"
         # import excel sheets
@@ -274,7 +274,7 @@ class ValidateReports:
         print(f'数据正确共：{no_category_sum_correct}\n数据错误共：{no_category_sum_incorrect}')
 
     def validateTransactionReports(self, name):
-        print(f"运行{name}，日期：{self._DATETIME_TO_VALIDATE}...")
+        print(f"运行{name}，日期：{self._DATETIME_TODAY}...")
         OLD_REPORT_FILENAME = r"7.19-7.22流水.xls"
         NEW_REPORT_FILENAME = r"9 前台商品销售流水（0831导）.xls"
 
@@ -515,12 +515,12 @@ class ValidateReports:
         OLD_REPORT_FILENAME = r"7.18z商品一览表.xls"
         NEW_REPORT_FILENAME = r"商品一览表.xlsx"
         print(
-            f"运行{name}，文件名：\n-{OLD_REPORT_FILENAME}\n-{NEW_REPORT_FILENAME}\n日期：{self._DATETIME_TO_VALIDATE}...")
+            f"运行{name}，文件名：\n-{OLD_REPORT_FILENAME}\n-{NEW_REPORT_FILENAME}\n日期：{self._DATETIME_TODAY}...")
         # import excel sheets
         old_report = OldBasicInforReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
                                          self._SHEET_NAME)
-        new_report = NewBasicInforReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
-                                         self._SHEET_NAME)
+        new_report = NewBasicInfoReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                        self._SHEET_NAME)
         # df_old = old_report.importExcelSheet()
         # df_new = new_report.importExcelSheet()
         # # # clean up the table
@@ -550,10 +550,10 @@ class ValidateReports:
 
     def validateSaleAndImportPurchaseStock(self, name):
         REPORT1_FILENAME = r"7 便利一店销售汇总报表（0905导）.xls"
-        REPORT2_FILENAME = r"4 商品进销存汇总表-0826.xls"
-        BASIC_INFO_FILENAME = r"7.18z商品一览表.xls"
+        REPORT2_FILENAME = r"G04 商品进销存汇总表 - 230818.xls"
+        BASIC_INFO_FILENAME = r"商品一览表.xlsx"
         print(
-            f"运行{name}，文件名：\n-{REPORT1_FILENAME}\n-{REPORT2_FILENAME}\n日期：{self._DATETIME_TO_VALIDATE}...")
+            f"运行{name}，文件名：\n- {REPORT1_FILENAME}\n- {REPORT2_FILENAME}\n- {BASIC_INFO_FILENAME}\n日期：{self._DATETIME_TODAY}...")
         # import excel sheets
         report1 = NewSaleReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, REPORT1_FILENAME,
                                 self._SHEET_NAME)
@@ -561,11 +561,15 @@ class ValidateReports:
         report1.SELECTED_COL_IDS = 'E, N, O, P, R'
         report2 = NewImportPurchaseStockReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, REPORT2_FILENAME,
                                                self._SHEET_NAME)
-        # df_1 = report1.importExcelSheet()
-        # df_2 = report2.importExcelSheet()
+        basic_info_report = NewBasicInfoReport(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, BASIC_INFO_FILENAME,
+                                               self._SHEET_NAME)
+        df_1 = report1.importExcelSheet()
+        df_2 = report2.importExcelSheet()
+        df_3 = basic_info_report.importExcelSheet()
         # # # # clean up the table
         # df_1 = report1.cleanTable(df_1, 0)
         # df_2 = report2.cleanTable(df_2, 0)
+        df_3 = basic_info_report.cleanTable(df_3, 1)
         # # write data to csv
         # df_1.to_csv(f'{name}report1_cleaned.csv')
         # df_2.to_csv(f'{name}report2_cleaned.csv')
@@ -579,16 +583,32 @@ class ValidateReports:
         for ind in df_1.index:
             serial_num = df_1['serialNum'][ind]
             saleAmount_1 = report1.getSaleAmount(df_1, serial_num) + report1.getRefundAmount(df_1, serial_num)
+            saleAmount_2 = -1
             try:
                 saleAmount_2 = report2.getRowByKey(df_2, serial_num)['saleAmount'].values[0]
             except IndexError:
                 print(f"该商品在进销存表中不存在：{serial_num}")
+
             dict_1 = report1.getRowByKey(df_1, serial_num)
             dict_2 = report2.getRowByKey(df_2, serial_num)
-            if saleAmount_1 == saleAmount_2:
+            dict_3 = df_3[df_3['serialNum'] == str(serial_num)]
+            try:
+                cost_import_purchase = dict_2['preSaleCost'].values[0]
+            except IndexError:
+                cost_import_purchase = -1
+                print(f'该商品在进销存表中不存在.')
+            try:
+                cost_basic_info = dict_3['cost'].values[0]
+            except IndexError:
+                cost_basic_info = -1
+                print(f"该商品在商品一览表中不存在.")
+            # 核对进销存表里的销售数量、进价
+            if saleAmount_1 == saleAmount_2 and cost_basic_info == cost_import_purchase:
                 no_correct += 1
             else:
                 no_incorrect += 1
-                print(f'商品：{serial_num}数据对不上:\n - 旧系统：{dict_1.values}\n- 新系统：{dict_2.values}')
+                print(f'商品：{serial_num}数据对不上:\n 数量 - 表1：{saleAmount_1}，- 表2：{saleAmount_2}')
+                print(f'进价 - 表2：{cost_import_purchase}，- 表3：{cost_basic_info}')
+                continue
         print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')

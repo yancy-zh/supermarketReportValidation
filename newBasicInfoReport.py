@@ -4,7 +4,7 @@
 from report import Report
 
 
-class NewBasicInforReport(Report):
+class NewBasicInfoReport(Report):
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_IDS = r'A, B, C, I, K, P, W, X'

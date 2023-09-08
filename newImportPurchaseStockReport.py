@@ -76,8 +76,8 @@ class NewImportPurchaseStockReport(Report):
             except TypeError:
                 if self.isSerialNum(row[col_name_serial_num]) \
                         and row[col_name_serial_num] not in self.UNITED_SALE \
-                        and len(row[col_name_serial_num]) != 5 \
-                        and self.parseAmount(row['preSaleAmount']) != 0:
+                        and len(row[col_name_serial_num]) != 5:
+                    # and self.parseAmount(row['preSaleAmount']) != 0
                     # clean united sale
                     cleaned_df = cleaned_df.append(row)
         return cleaned_df
