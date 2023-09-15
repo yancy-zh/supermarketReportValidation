@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import re
+
 from report import Report
 
 
@@ -45,4 +46,14 @@ class OldTransactionRecordReport(Report):
     def convertTextDataToDigital(self, df):
         df[self.SELECTED_COL_NAMES[3]] = df[self.SELECTED_COL_NAMES[3]].map(self.parseAmount)
         df[self.SELECTED_COL_NAMES[4]] = df[self.SELECTED_COL_NAMES[4]].map(self.parsePrice)
+        return df
+
+    def flipRefundAmountSign(self, df):
+        for ind in df.index:
+            if df['saleType'][ind] == '退货':
+                try:
+                    df.loc[ind, 'amount'] = -df['amount'][ind]
+                    df.loc[ind, 'salePrice'] = -df['salePrice'][ind]
+                except TypeError:
+                    print("非数值")
         return df

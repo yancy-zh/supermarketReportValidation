@@ -279,6 +279,8 @@ class ValidateReports:
         print(f"运行{name}，日期：{self._DATETIME_TODAY}...")
         OLD_REPORT_FILENAME = r"7.19-7.22流水.xls"
         NEW_REPORT_FILENAME = r"9 前台商品销售流水（0831导）.xls"
+        print(
+            f"运行{name}，文件名：\n- {OLD_REPORT_FILENAME}\n- {NEW_REPORT_FILENAME}\n日期：{self._DATETIME_TODAY}...")
 
         # import excel sheets
         old_report = OldTransactionRecordReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
@@ -288,7 +290,9 @@ class ValidateReports:
                                           self._SHEET_NAME)
         df_new_sys = new_report.importExcelSheet()
         df_old_sys_cleaned = old_report.cleanTable(df_old_sys, 2)
-        df_old_sys_amount_sum = old_report.calAmountSummary(old_report.convertTextDataToDigital(df_old_sys_cleaned))
+        df_old_sys_cleaned = old_report.convertTextDataToDigital(df_old_sys_cleaned)
+        df_old_sys_cleaned = old_report.flipRefundAmountSign(df_old_sys_cleaned)
+        df_old_sys_amount_sum = old_report.calAmountSummary(df_old_sys_cleaned)
         df_old_sys_amount_sum.to_csv(f'{name}df_old_sys_amount_sum.csv')
         df_new_sys_cleaned = new_report.cleanTable(df_new_sys, 2)
         df_new_sys_amount_sum = new_report.calAmountSummary(new_report.convertTextDataToDigital(df_new_sys_cleaned))
