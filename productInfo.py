@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import re
 import os
+import re
+
 import pandas as pd
 
 
@@ -39,9 +40,6 @@ class ProductInfo:
                 id_ls.append(id)
                 # TODO
         return id_ls
-
-    def lookUpSupplierName(self, productId):
-        pass
 
     def cvtProductIdFormat(self, idStr):
         mt = re.match(self._PROUDCT_ID_FORMAT_PATTERN, idStr)

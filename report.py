@@ -113,7 +113,7 @@ class Report:
             row = df.loc[i, :]
             # clean empty row
             try:
-                if math.isnan(row['supplierName']) is not None:
+                if math.isnan(row['supplierName']):
                     continue
             except TypeError:
                 if self.isSupplierName(row['supplierName']):
