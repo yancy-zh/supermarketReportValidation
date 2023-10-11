@@ -45,3 +45,9 @@ class OldExportReport(Report):
 
     def getSaleIncome(self, df, ind):
         return round(df['saleIncome'][ind], 2)
+
+    def compareDicts(self, dict_old, dict_new):
+        for key in ['saleAmount', 'saleIncome', 'totalCost', 'grossProfit', 'grossProfitRate']:
+            if dict_old[key] != dict_new[key]:
+                return False
+        return True

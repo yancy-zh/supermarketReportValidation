@@ -16,7 +16,7 @@ class OldSaleReport(Report):
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_IDS = r'E, G, H, I, J, M, N'  # r'D, F, G, H, I, L'
-        self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice', 'unit',
+        self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'saleTotal', 'refundAmount', 'refundPrice', 'unit',
                                    'importPrice']
 
     def getSerialNum(self, df, ind):
@@ -69,7 +69,7 @@ class OldSaleReport(Report):
         sum_dict = {'sale_amount': 0, 'sale_price': 0, 'refund_amount': 0, 'refund_price': 0}
         try:
             sum_dict['sale_amount'] = self.sumAmount(row_filterd[self.SELECTED_COL_NAMES[1]])
-            sum_dict['sale_price'] = round(self.sumPrice(row_filterd[self.SELECTED_COL_NAMES[2]]), 2)
+            sum_dict['sale_total'] = round(self.sumPrice(row_filterd[self.SELECTED_COL_NAMES[2]]), 2)
             sum_dict['refund_amount'] = self.sumAmount(row_filterd[self.SELECTED_COL_NAMES[3]])
             sum_dict['refund_price'] = round(self.sumPrice(row_filterd[self.SELECTED_COL_NAMES[4]]), 2)
         except IndexError:

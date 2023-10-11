@@ -52,7 +52,7 @@ class NewImportPurchaseStockGroupBySupplierReport(Report):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_NAMES = ['supplierName', 'preSaleAmount', 'preSalePrice', 'importAmount', 'importPrice',
                                    'saleAmount', 'salePrice', 'postSaleAmount', 'postSalePrice']
-        self.SELECTED_COL_IDS = r'B, F, H, K, M, P, R, T, U'
+        self.SELECTED_COL_IDS = r'C, G, I, L, N, Q, S, U, V'
         self.CONVERTERS = {}
         self.SKIP_ROWS = {0, 1, 2, 3, 4}
         self.COMPARE_COLS = [0, 1, 2, 3, 4, 5, 6, 7]

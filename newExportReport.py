@@ -31,3 +31,16 @@ class NewExportReport(Report):
 
     def calAmountSummary(self, df):
         return df.groupby(['supplierName', 'categoryName'])
+
+    def getSupplierName(self, df):
+        return df['supplierName'][0]
+
+    def getAllStatsForGroup(self, groupby_obj, supplier_name, category_name):
+        selected_group = groupby_obj.get_group((supplier_name, category_name))
+        dict_stats = {}
+        dict_stats['saleAmount'] = selected_group['saleAmount'].sum()
+        dict_stats['saleIncome'] = round(selected_group['saleIncome'].sum(), 2)
+        dict_stats['totalCost'] = round(selected_group['totalCost'].sum(), 2)
+        dict_stats['grossProfit'] = round(selected_group['grossProfit'].sum(), 2)
+        dict_stats['grossProfitRate'] = round(dict_stats['grossProfit'] / dict_stats['saleIncome'], 4)
+        return dict_stats

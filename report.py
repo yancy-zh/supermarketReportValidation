@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+import errno
 import math
 import os
 import re
@@ -24,8 +25,7 @@ class Report:
 
     def importExcelSheet(self):
         if not os.path.isfile(self.metadata_filename):
-            print(f"file {self.metadata_filename} doesn't exists")
-            return
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.metadata_filename)
         df_metadata = pd.read_excel(self.metadata_filename, header=None, skiprows=self.SKIP_ROWS,
                                     usecols=self.SELECTED_COL_IDS,
                                     names=self.SELECTED_COL_NAMES,
@@ -67,11 +67,12 @@ class Report:
             self.parsePrice(price)
 
     def parsePrice(self, priceStr):
+        # TODO: test this
         try:
             priceStr = priceStr.strip()
+            priceStr = priceStr.replace(',', '')
         except AttributeError:
             return round(float(priceStr), 2)
-        priceStr = priceStr.replace(',', '')
         mt = re.match(self.AMOUNT_PATTERN, priceStr)
         if mt:
             return round(float(priceStr), 2)
@@ -146,3 +147,6 @@ class Report:
             if not bool_arr[0][i]:
                 return False
         return True
+
+    def rateToDecimal(self, rate):
+        return round(float(rate.strip('%')) / 100, 4)

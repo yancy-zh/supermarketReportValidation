@@ -1,4 +1,4 @@
-,importPrice,refundAmount,refundPrice,saleAmount,salePrice,serialNum,unit
+,importPrice,refundAmount,refundPrice,saleAmount,saleTotal,serialNum,unit
 1,150.00,0.00,0.00,35.00,"5,596.50",6916168616554,桶
 2,98.00,0.00,0.00,49.00,"5,336.10",6938749816122,桶
 3,65.00,0.00,0.00,2.00,150.00,6971114920017,瓶

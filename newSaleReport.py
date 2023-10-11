@@ -10,10 +10,13 @@ from report import Report
 class NewSaleReport(Report):
     _ENTRY_NOT_PRODUCT = 0
     _ENTRY_NOT_FOUND = 0
+
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
-        self.SELECTED_COL_IDS = r'E, J, K, L, M, O'  # 'F, K, L, N, O, Q'
-        self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice', 'importPrice']
+        self.SELECTED_COL_IDS = r'E, N, O, P, R, T, Y'  # 'F, K, L, N, O, Q'
+        self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'saleTotal', 'refundAmount', 'refundPrice', 'importPrice',
+                                   'salePrice']
+
     def importExcelSheet(self):
         if not os.path.isfile(self.metadata_filename):
             print(f"file {self.metadata_filename} doesn't exists")
@@ -51,7 +54,7 @@ class NewSaleReport(Report):
     def getSaleAmount(self, df, serial_num):
         return self.getAmount(df, serial_num, self.SELECTED_COL_NAMES[1])
 
-    def getSalePrice(self, df, serial_num):
+    def getSaleTotal(self, df, serial_num):
         return self.getPrice(df, serial_num, self.SELECTED_COL_NAMES[2])
 
     def getRefundAmount(self, df, serial_num):
@@ -62,4 +65,3 @@ class NewSaleReport(Report):
 
     def getNotProductAmount(self):
         return self._ENTRY_NOT_PRODUCT
-
