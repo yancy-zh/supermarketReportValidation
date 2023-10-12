@@ -24,8 +24,14 @@ class Comparator:
         return [df_old, df_new]
 
     def printItemUnequalResult(self, serial_num, old_dict, new_dict):
-        print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
+        print(f'商品：{serial_num}数据对不上:\n - 旧系统：{old_dict}\n- 新系统：{new_dict}')
 
     def printTotalResult(self, total, no_correct, no_incorrect):
         print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
+
+    def printSeparationLine(self):
+        print(u'\u2015' * 10)
+
+    def printNewSysNotFound(self, item_name):
+        print(item_name + "在新系统中不存在。")

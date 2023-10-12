@@ -5,6 +5,7 @@ import math
 
 import pandas as pd
 
+from NewImportSummay import NewImportSummay
 from comparator import Comparator
 from importPurchaseStockGroupBySupplier import NewImportPurchaseStockGroupBySupplierReport
 from importPurchaseStockGroupBySupplier import OldImportPurchaseStockGroupBySupplierReport
@@ -428,12 +429,20 @@ class ValidateReports:
         SUPPLIERS = ['傲涵', '超乐惠', '丰泰', '和天熙', '蓝鲁', '品优兴', '腾旺',
                      '小大', '一生一客', '秦南', '三炫', '西华', '丹君', '老牛', '臻泽', '米脂', '海和景', '野森林',
                      '菲达', '鲁花', '其林', '永信']
+        # 比对入库单分供应商
+        # for supplier in SUPPLIERS:
+        #     try:
+        #         self.validateImportReportsBySupplier(name, supplier)
+        #     #     TODO: 显示哪个系统
+        #     except FileNotFoundError:
+        #         print(f"{supplier} 无入库单。")
+        #         continue
+        # 比对入库汇总分供应商
         for supplier in SUPPLIERS:
             try:
-                self.validateImportReportsBySupplier(name, supplier)
-            #     TODO: 显示哪个系统
+                self.validateImportSummaryBySupplier(name, supplier)
             except FileNotFoundError:
-                print(f"{supplier} 无入库单。")
+                print(f"{supplier} 无入库明细报表。")
                 continue
         # for supplier in SUPPLIERS:
         #     self.validateImportReports_generateCSVs(name, supplier)
@@ -473,6 +482,44 @@ class ValidateReports:
                 print(f'商品：{supplier_name}数据对不上:\n - 旧系统：{old_dict.values}\n- 新系统：{new_dict.values}')
         print(f'总数据行数：{total}')
         print(f'数据正确共：{no_correct}\n数据错误共：{no_incorrect}')
+
+    def validateImportSummaryBySupplier(self, name, supplier_name):
+        OLD_REPORT_FILENAME = f'7.19-7.22入库明细{supplier_name}.xls'
+        NEW_REPORT_FILENAME = f"16 商品入库单明细报表 {supplier_name}.xls"
+        program_name = "程序" + name + "来自供应商：" + supplier_name
+        comparator = Comparator(OLD_REPORT_FILENAME, NEW_REPORT_FILENAME, program_name, self._DATETIME_TODAY)
+        comparator.printSeparationLine()
+        comparator.printLogHeaderOldAndNew()
+        # import excel sheets
+        old_report = OldImportReport(self._STOCK_VALIDATION_WORKING_DIR_OLD_SYS, OLD_REPORT_FILENAME,
+                                     self._SHEET_NAME)
+        new_report = NewImportSummay(self._STOCK_VALIDATION_WORKING_DIR_NEW_SYS, NEW_REPORT_FILENAME,
+                                     self._SHEET_NAME)
+        df_old = old_report.importExcelSheet()
+        df_new = new_report.importExcelSheet()
+        df_old = old_report.cleanTableWOUnited(df_old)
+        df_new = new_report.cleanTableWOUnited(df_new)
+        df_old = old_report.convertTextDataToDigital(df_old)
+        df_new = new_report.convertTextDataToDigital(df_new)
+        groupby_obj_new = new_report.calAmountSummary(df_new)
+
+        total = len(df_old.index)
+        no_correct = 0
+        no_incorrect = 0
+        for ind in df_old.index:
+            serial_num = df_old['serialNum'][ind]
+            old_dict = old_report.getRowByKey(df_old, serial_num)
+            try:
+                new_dict = new_report.getAllStatsForGroup(groupby_obj_new, serial_num)
+            except KeyError:
+                new_dict = {}
+                comparator.printNewSysNotFound(serial_num)
+            if new_report.compareDicts(old_dict, new_dict):
+                no_correct += 1
+            else:
+                no_incorrect += 1
+                comparator.printItemUnequalResult(serial_num, old_dict, new_dict)
+        comparator.printTotalResult(total, no_correct, no_incorrect)
 
     def validateInventoryCountingReports(self, name):
         print(f'运行比对：{name}')
