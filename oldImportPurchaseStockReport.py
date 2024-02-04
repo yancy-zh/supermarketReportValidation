@@ -9,14 +9,13 @@ class OldImportPurchaseStockReport(Report):
                                    'postSaleAmount', 'postSalePrice', 'importPrice', 'saleAmount', 'salePrice']
         self.SELECTED_COL_IDS = r'C, E, F, H, I, J, M, P, AG, AI'
 
-
     def convertTextDataToDigital(self, df):
-        df[self.SELECTED_COL_NAMES[3]] = df[self.SELECTED_COL_NAMES[3]].transform(self.floatToInt)
-        df[self.SELECTED_COL_NAMES[8]] = df[self.SELECTED_COL_NAMES[8]].transform(self.floatToInt)
-        df[self.SELECTED_COL_NAMES[5]] = df[self.SELECTED_COL_NAMES[5]].transform(self.parseAmount)
         df[self.SELECTED_COL_NAMES[1]] = df[self.SELECTED_COL_NAMES[1]].transform(self.parseAmount)
-        for i in [2, 4, 6, 7, 9]:
-            df[self.SELECTED_COL_NAMES[i]] = df[self.SELECTED_COL_NAMES[i]].transform(self.roundPrice)
+        df[self.SELECTED_COL_NAMES[3]] = df[self.SELECTED_COL_NAMES[3]].transform(self.floatToInt)
+        df[self.SELECTED_COL_NAMES[5]] = df[self.SELECTED_COL_NAMES[5]].transform(self.parseAmount)
+        df[self.SELECTED_COL_NAMES[8]] = df[self.SELECTED_COL_NAMES[8]].transform(self.floatToInt)
+        # for i in [2, 4, 6, 7, 9]:
+        #     df[self.SELECTED_COL_NAMES[i]] = df[self.SELECTED_COL_NAMES[i]].transform(self.roundPrice)
         return df
 
     def removeKeyFromDict(self, dict):

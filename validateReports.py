@@ -30,9 +30,9 @@ from oldTransactionRecordReport import OldTransactionRecordReport
 
 
 class ValidateReports:
-    _STOCK_VALIDATION_WORKING_DIR_OLD_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\old\20230719-0722"
-    _STOCK_VALIDATION_WORKING_DIR_NEW_SYS = r"D:\微云同步助手\89151701\liangli\proj\data\new\20230719-0722"
-    _DATETIME_TO_VALIDATE = datetime.datetime(year=2023, month=7, day=25)
+    _STOCK_VALIDATION_WORKING_DIR_OLD_SYS = r"D:\微云同步助手\89151701\liangli\一卡通\data\old\20230719-0722"
+    _STOCK_VALIDATION_WORKING_DIR_NEW_SYS = r"D:\微云同步助手\89151701\liangli\一卡通\data\new\20240129"
+    _DATETIME_TO_VALIDATE = datetime.datetime(year=2024, month=1, day=29)
     _DATETIME_TODAY = datetime.datetime.today()
     _FORMAT_OF_PRINTED_DATE = "%Y-%m-%d"
     _SHEET_NAME = "Sheet1"
@@ -122,7 +122,7 @@ class ValidateReports:
 
     def validatePurchaseSaleStockReports(self, name):
         OLD_REPORT_FILENAME = r"7.19-7.22动态明细.xls"
-        NEW_REPORT_FILENAME = r"4 商品进销存汇总表 臻泽.xls"
+        NEW_REPORT_FILENAME = r"G04 商品进销存汇总表 - 去零0202导.xls"
         print(
             f"运行比对{name}，文件名：\n- {OLD_REPORT_FILENAME}\n- {NEW_REPORT_FILENAME}\n报告生成日期：{self._DATETIME_TODAY}...")
         no_correct = 0
@@ -429,6 +429,7 @@ class ValidateReports:
         SUPPLIERS = ['傲涵', '超乐惠', '丰泰', '和天熙', '蓝鲁', '品优兴', '腾旺',
                      '小大', '一生一客', '秦南', '三炫', '西华', '丹君', '老牛', '臻泽', '米脂', '海和景', '野森林',
                      '菲达', '鲁花', '其林', '永信']
+        SUPPLIERS.sort()
         # 比对入库单分供应商
         # for supplier in SUPPLIERS:
         #     try:
@@ -452,7 +453,7 @@ class ValidateReports:
     def validateImportPurchaseStockGroupBySupplier(self, name):
         print(f'运行比对：{name}')
         OLD_REPORT_FILENAME = f'7.19-7.22进销存变动表-删掉为零的.xls'
-        NEW_REPORT_FILENAME = r"G05 商品进销存变动表 - 230818.xls"
+        NEW_REPORT_FILENAME = r"G05 商品进销存变动表-去零.xls"
         print(
             f"运行{name}，文件名：\n-{OLD_REPORT_FILENAME}\n-{NEW_REPORT_FILENAME}\n日期：{self._DATETIME_TODAY}...")
         # import excel sheets
@@ -524,7 +525,7 @@ class ValidateReports:
     def validateInventoryCountingReports(self, name):
         print(f'运行比对：{name}')
         OLD_REPORT_FILENAME = f'7.22盘点差异表.xls'
-        NEW_REPORT_FILENAME = r'1 盘点差异表 - 盈亏分组(0908导).xls'
+        NEW_REPORT_FILENAME = r'1 盘点差异表 - 盈亏分组-无时间0129.xls'  # 1 盘点差异表 - 盈亏分组(0908导)
         print(
             f"运行{name}，文件名：\n- {OLD_REPORT_FILENAME}\n- {NEW_REPORT_FILENAME}\n报告生成日期：{self._DATETIME_TODAY}...")
         # import excel sheets

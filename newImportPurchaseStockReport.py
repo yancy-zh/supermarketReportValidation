@@ -11,7 +11,7 @@ class NewImportPurchaseStockReport(Report):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_NAMES = ['serialNum', 'preSaleCost', 'preSaleAmount', 'preSalePrice', 'importAmount',
                                    'importPrice', 'saleAmount', 'salePrice', 'postSaleAmount', 'postSalePrice']
-        self.SELECTED_COL_IDS = r'D, J, M, P, Q, R, S, T, V, W'
+        self.SELECTED_COL_IDS = r'D, J, M, P, Q, R, T, U, W, X'  # D, J, M, P, Q, R, S, T, V, W # D, J, M, P, Q, R, T, U, W, X
 
         self.EXCLUDED_SERIAL_NUMS = ['901200', '108800', '901000', '901300', '248084', '240026', '240040', "005080",
                                      "005190", "005020", "005070", "005010", "005140", "005170", "005210", "005100",
@@ -44,8 +44,8 @@ class NewImportPurchaseStockReport(Report):
     def convertTextDataToDigital(self, df):
         for i in [2, 4, 6, 8]:
             df[self.SELECTED_COL_NAMES[i]] = df[self.SELECTED_COL_NAMES[i]].transform(self.floatToInt)
-        for j in [1, 3, 5, 7, 9]:
-            df[self.SELECTED_COL_NAMES[j]] = df[self.SELECTED_COL_NAMES[j]].transform(self.roundPrice)
+        # for j in [1, 3, 5, 7, 9]:
+        #     df[self.SELECTED_COL_NAMES[j]] = df[self.SELECTED_COL_NAMES[j]].transform(self.roundPrice)
         return df
 
     def removeKeyFromDict(self, dict):
