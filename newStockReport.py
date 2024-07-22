@@ -1,11 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import pandas as pd
-import os
-import re
 from report import Report
-from pandas import DataFrame
-import math
 
 
 class NewStockReport(Report):
@@ -17,7 +12,8 @@ class NewStockReport(Report):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_NAMES = ['categoryName', 'serialNum', 'productName', 'amount', 'cost',
                                    'currPrice']
-        self.SELECTED_COL_IDS = r'C, E, F, I, K, O'
+        self.SELECTED_COL_IDS = r'C, H, I, L, N, R'  # C, E, F, I, K, O
+        self.COMPARE_COLS = [1, 2, 3, 4, 5]
 
     def getAmount(self, df, productId):
         row_filterd = df[df['serialNum'] == productId]

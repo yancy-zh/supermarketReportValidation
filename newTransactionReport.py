@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import re
+
 from report import Report
 
 
@@ -11,7 +12,7 @@ class NewTransactionReport(Report):
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_NAMES = ['itemId', 'saleType', 'productId', 'amount', 'salePrice']
-        self.SELECTED_COL_IDS = r'B, G, H, M, Q'
+        self.SELECTED_COL_IDS = r'B, F, H, L, Q'  # B, G, H, M, Q
 
     def isSerialNum(self, serial_num_str):
         return re.fullmatch(self._SERIAL_PATTERN, serial_num_str)

@@ -100,7 +100,7 @@ class OldSaleReport(Report):
             col_name_serial_num = self.SELECTED_COL_NAMES[col_idx_serial_no]
             # clean empty row
             try:
-                if math.isnan(row[col_name_serial_num]) is not None:
+                if math.isnan(row[col_name_serial_num]):
                     continue
             except TypeError:
                 if self.isSerialNum(row[col_name_serial_num]):

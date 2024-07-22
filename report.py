@@ -37,7 +37,7 @@ class Report:
         return re.fullmatch(self.SERIAL_PATTERN, serial_num_str)
 
     def isSupplierName(self, nameStr):
-        if nameStr not in ['供应商', '名称', '合计：']:
+        if nameStr not in ["供应商", "名称", "合计：", "合计", "供应商名称", "类别名称"]:
             return True
         else:
             return False
@@ -89,7 +89,7 @@ class Report:
                 if math.isnan(row[col_name_serial_num]):
                     continue
             except TypeError:
-                if self.isSerialNum(row[col_name_serial_num]) is not None:
+                if self.isSerialNum(row[col_name_serial_num]):
                     # clean united sale
                     if len(row[col_name_serial_num]) != 5:
                         cleaned_df = cleaned_df.append(row)
@@ -101,7 +101,7 @@ class Report:
             row = df.loc[i, :]
             # clean empty row
             try:
-                if math.isnan(row['serialNum']) is not None:
+                if math.isnan(row['serialNum']):
                     continue
             except TypeError:
                 if self.isSerialNum(row['serialNum']):

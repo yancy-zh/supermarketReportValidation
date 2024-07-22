@@ -1,9 +1,7 @@
 # !/usr/bin/python
 # -*- coding: UTF-8 -*-
-import pandas as pd
-import os
-import re
 from report import Report
+
 
 class NewSaleByCategoryReport(Report):
     _ENTRY_NOT_FOUND = 0
@@ -11,7 +9,7 @@ class NewSaleByCategoryReport(Report):
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_NAMES = ['category', 'saleAmount', 'salePrice', 'refundAmount', 'refundPrice']
-        self.SELECTED_COL_IDS = r'D, M, O, P, Q'
+        self.SELECTED_COL_IDS = r'D, K, M, O, P'
 
     def getTotalByCategory(self, df, category):
         row_filterd = df[df[self.SELECTED_COL_NAMES[0]] == category]

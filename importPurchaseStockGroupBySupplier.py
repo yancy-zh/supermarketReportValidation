@@ -13,7 +13,7 @@ class OldImportPurchaseStockGroupBySupplierReport(Report):
         self.SKIP_ROWS = []
         self.COMPARE_COLS = [0, 1, 2, 3, 4, 5, 6, 7]
         self.KEY_COL = 'supplierName'
-        self.SUPPLIER_NAME_MAP = {'山东鲁花集团商贸有限公司': '山东鲁花集团商贸有限公司西安分公司',
+        self.SUPPLIER_NAME_MAP = {'山东鲁花集团': '山东鲁花集团商贸有限公司西安分公司',
                                   '老牛面粉厂': '陕西老牛面粉有限公司',
                                   '菲达食品公司': '西安菲达食品商贸有限公司',
                                   '蓝鲁蛋糕店': '西安经济技术开发区蓝鲁蛋糕店',
@@ -31,7 +31,13 @@ class OldImportPurchaseStockGroupBySupplierReport(Report):
                                   '超乐惠有限公司': '西安超乐惠商贸有限公司',
                                   "野森林现代农业公司": '陕西野森林现代农业有限公司',
                                   "品优兴有限公司": '西安品优兴农产品有限公司',
-                                  "和天熙商贸有限公司": '西安和天熙商贸有限公司'
+                                  "和天熙商贸有限公司": '西安和天熙商贸有限公司',
+                                  "无1": "陕西安朗瑞商贸有限公司",
+                                  "西安草滩金牛餐饮公司": "西安草滩金牛餐饮管理有限公司",
+                                  "西安阜隆商贸公司": "西安阜隆商贸有限公司",
+                                  "其林贸易有限公司": "西安其林贸易有限公司",
+                                  "无2": "西安市碑林区祥坤蔬菜店",
+                                  "禾采商贸有限公司": "西安市禾采商贸有限公司"
                                   }
 
     def convertTextDataToDigital(self, df):
@@ -45,6 +51,11 @@ class OldImportPurchaseStockGroupBySupplierReport(Report):
         if old_name not in self.SUPPLIER_NAME_MAP.keys():
             return old_name
         return self.SUPPLIER_NAME_MAP.get(old_name)
+
+    def getSupplierNameOldSys(self, new_name):
+        if new_name in self.SUPPLIER_NAME_MAP.values():
+            return list(self.SUPPLIER_NAME_MAP.keys())[list(self.SUPPLIER_NAME_MAP.values()).index(new_name)]
+        return new_name
 
 
 class NewImportPurchaseStockGroupBySupplierReport(Report):

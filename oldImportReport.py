@@ -10,7 +10,8 @@ class OldImportReport(Report):
         self.SKIP_ROWS = [0, 1, 2]
 
     def convertTextDataToDigital(self, df):
-        df[self.SELECTED_COL_NAMES[1]] = df[self.SELECTED_COL_NAMES[1]].map(self.parseAmount)
+        for i in [1]:
+            df[self.SELECTED_COL_NAMES[i]] = df[self.SELECTED_COL_NAMES[i]].map(self.parseAmount)
         for i in [2, 3]:
             df[self.SELECTED_COL_NAMES[i]] = df[self.SELECTED_COL_NAMES[i]].map(self.parsePrice)
         return df

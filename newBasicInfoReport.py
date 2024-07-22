@@ -7,9 +7,9 @@ from report import Report
 class NewBasicInfoReport(Report):
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
-        self.SELECTED_COL_IDS = r'A, B, C, I, K, P, W, X'
-        self.SELECTED_COL_NAMES = ['productId', 'serialNum', 'productName', 'categoryName',
-                                   'supplierName', 'unit', 'currPrice', 'cost'
+        self.SELECTED_COL_IDS = r'C, D, E, H, K, L, M, N'  # A, B, C, I, K, P, W, X
+        self.SELECTED_COL_NAMES = ['productId', 'serialNum', 'productName', 'categoryName', 'supplierName', 'unit',
+                                   'cost', 'currPrice'
                                    ]
 
     def compareDicts(self, dict_old, dict_new):

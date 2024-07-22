@@ -8,7 +8,7 @@ class NewExportReport(Report):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
         self.SELECTED_COL_NAMES = ['supplierName', 'serialNum', 'categoryName', 'saleAmount', 'saleIncome',
                                    'totalCost', 'grossProfit', 'grossProfitRate']
-        self.SELECTED_COL_IDS = r'D, G, L, N, O, P, R, S'
+        self.SELECTED_COL_IDS = r'D, G, L, N, O, P, R, S'  # D, F, K, M, N,O, Q, R
 
     def getPrice(self, df, serial_num, colName):
         row_filterd = df[df[self.SELECTED_COL_NAMES[1]] == serial_num]
@@ -44,3 +44,10 @@ class NewExportReport(Report):
         dict_stats['grossProfit'] = round(selected_group['grossProfit'].sum(), 2)
         dict_stats['grossProfitRate'] = round(dict_stats['grossProfit'] / dict_stats['saleIncome'], 4)
         return dict_stats
+
+    def convertTextDataToDigital(self, df):
+        for i in [3]:
+            df[self.SELECTED_COL_NAMES[i]] = df[self.SELECTED_COL_NAMES[i]].map(self.parseAmount)
+        for i in [4, 5, 6]:
+            df[self.SELECTED_COL_NAMES[i]] = df[self.SELECTED_COL_NAMES[i]].map(self.parsePrice)
+        return df

@@ -13,7 +13,7 @@ class NewSaleReport(Report):
 
     def __init__(self, working_dir_name, reportTableName, excel_sheet_name):
         super().__init__(working_dir_name, reportTableName, excel_sheet_name)
-        self.SELECTED_COL_IDS = r'E, N, O, P, R, T, Y'  # 'F, K, L, N, O, Q'
+        self.SELECTED_COL_IDS = r'G, K, M, O, P, R, T'  # 'F, K, L, N, O, Q' ‘E, N, O, P, R, T, Y’
         self.SELECTED_COL_NAMES = ['serialNum', 'saleAmount', 'saleTotal', 'refundAmount', 'refundPrice', 'importPrice',
                                    'salePrice']
 
